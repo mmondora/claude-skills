@@ -5,6 +5,8 @@ description: "Communicating architectural decisions to stakeholders. Architectur
 
 # Architecture Communication
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Communicating architectural decisions to different stakeholders. Architecture Reviews, ADR presentation, stakeholder management, and architecture documentation as a living artifact. The best architecture is useless if it's not understood and adopted.
@@ -93,6 +95,42 @@ For each service or capability, maintain living documentation:
 - Which external services are used (APIs, cloud services)
 - Guardrails adopted (contract tests, policies, observability gates)
 - Circuit breaker and fallback behavior for each dependency
+
+### Example: overview.md Excerpt (Section 1 + 4)
+
+```markdown
+# Invoice Platform — Architecture Overview
+
+## 1. Context & Objectives
+
+The Invoice Platform enables small businesses to create, send, and track
+invoices. Target: 1,000 active businesses within 6 months of launch.
+
+**Success metrics**: invoice creation < 3s (p95), 99.9% availability,
+< $100/month cloud cost at 1,000 tenants.
+
+**Constraints**: GDPR compliance (EU data residency), 4-week MVP timeline,
+3-person engineering team, budget < $200/month for infrastructure.
+
+**Scope**: Invoice CRUD, PDF export, email sending, payment status tracking.
+**Non-scope**: Payment processing (use Stripe), accounting integration (v2).
+
+## 4. Key Flows
+
+### Invoice Creation (Happy Path)
+1. User fills invoice form in React SPA
+2. Client sends POST /api/v1/tenants/{id}/invoices with JWT
+3. API validates input (Zod), saves to Firestore
+4. API publishes `invoicing.invoice.created` event to Pub/Sub
+5. Worker processes event: generates PDF, sends email notification
+6. Client receives 201 Created with invoice data
+
+### Invoice Creation (Error: Duplicate)
+1-2. Same as happy path
+3. Firestore write fails (duplicate invoice number for tenant)
+4. API returns 409 Conflict with RFC 7807 error body
+5. Client displays error message, user corrects invoice number
+```
 
 ### Quality Checks for Architecture Docs
 

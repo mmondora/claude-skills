@@ -5,6 +5,8 @@ description: "Infrastructure as Code with Terraform and Pulumi. State management
 
 # Infrastructure as Code
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Rules for managing infrastructure through versioned code. Terraform as multi-cloud default, Pulumi as TypeScript-native alternative. Zero ClickOps.
@@ -49,6 +51,64 @@ infra/
 
 **Drift detection**: periodic CI job (weekly) running `terraform plan` and flagging drift. Every drift is an incident to resolve.
 
+### Terraform Module Example — GCP Cloud Run Service
+
+```hcl
+# modules/cloud-run-service/main.tf
+resource "google_cloud_run_v2_service" "service" {
+  name     = "${var.project}-${var.environment}-${var.service_name}"
+  location = var.region
+
+  template {
+    containers {
+      image = var.image
+      resources {
+        limits = {
+          cpu    = var.cpu
+          memory = var.memory
+        }
+      }
+      env {
+        name  = "NODE_ENV"
+        value = var.environment
+      }
+      startup_probe {
+        http_get { path = "/health" }
+      }
+      liveness_probe {
+        http_get { path = "/health" }
+      }
+    }
+    scaling {
+      min_instance_count = var.min_instances
+      max_instance_count = var.max_instances
+    }
+    service_account = var.service_account_email
+  }
+
+  labels = {
+    environment  = var.environment
+    team         = var.team
+    cost-center  = var.cost_center
+    managed-by   = "terraform"
+  }
+}
+```
+
+### Backend Configuration Example
+
+```hcl
+# environments/production/backend.tf
+terraform {
+  backend "gcs" {
+    bucket = "myproject-terraform-state"
+    prefix = "production"
+  }
+}
+```
+
+State locking note: GCS backend provides automatic state locking via object generation. Enable object versioning on the bucket for state recovery.
+
 ---
 
 ## Pulumi (TypeScript alternative)
@@ -56,6 +116,24 @@ infra/
 Pulumi lets you write IaC in TypeScript, reusing the same language as your backend. Advantage: types, conditional logic, testing with standard frameworks. Disadvantage: less mature than Terraform, smaller community.
 
 Use Pulumi when the team is full-TypeScript and infrastructure complexity justifies programmatic logic in IaC files.
+
+```typescript
+import * as gcp from '@pulumi/gcp';
+
+const service = new gcp.cloudrunv2.Service('api-service', {
+  location: 'europe-west1',
+  template: {
+    containers: [{
+      image: pulumi.interpolate`${registry}/${imageName}:${imageTag}`,
+      resources: { limits: { cpu: '1', memory: '512Mi' } },
+    }],
+    scaling: { minInstanceCount: 0, maxInstanceCount: 10 },
+  },
+  labels: { environment: stack, team: 'backend', 'managed-by': 'pulumi' },
+});
+
+export const serviceUrl = service.uri;
+```
 
 ---
 
@@ -65,10 +143,33 @@ Never secrets in .tf or .tfvars files. Use GCP Secret Manager referenced from Te
 
 ---
 
+## Pre-Apply Checklist
+
+- [ ] `terraform plan` reviewed — no unexpected destroys or replacements
+- [ ] Sensitive values marked `sensitive = true`
+- [ ] All resources have mandatory tags (environment, team, cost-center, managed-by)
+- [ ] Module outputs defined for all values consumed by other modules
+- [ ] State backend configured with versioning and locking
+- [ ] No hardcoded values — all environment-specific values in `.tfvars`
+- [ ] Drift detection CI job scheduled (weekly minimum)
+
+---
+
+## Anti-Patterns
+
+- **ClickOps**: creating resources manually in the console defeats IaC's purpose — if it's not in code, it doesn't exist
+- **Manual state edits**: `terraform state mv/rm` is an emergency tool, not a workflow — restructure modules instead
+- **Hardcoded values in modules**: modules must be parameterized — environment-specific values belong in `.tfvars`
+- **Monolithic state**: one state file for the entire infrastructure — split by domain (networking, compute, database)
+- **No plan review**: applying without reviewing the plan is deploying blind
+- **Ignoring drift**: drift detected and not resolved grows until it becomes a production incident
+
+---
+
 ## For Claude Code
 
 When generating IaC: modules per functional domain, parameterized variables per environment, remote state, mandatory tags, outputs for every resource consumed by other modules. Generate a `README.md` per module with: what it does, inputs, outputs, usage example.
 
 ---
 
-*Internal references*: `cloud-architecture.md`, `finops.md`, `security.md`
+*Internal references*: `finops/SKILL.md`, `security-by-design/SKILL.md`, `containerization/SKILL.md`

@@ -167,53 +167,59 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 ### 01 — Foundations (Principles & Governance)
 | Skill | Path | Covers |
 |-------|------|--------|
-| Architecture Decision Records | `skills/adr.md` | ADR governance, format, lifecycle, review process, ADR index |
+| Architecture Decision Records | `architecture-decision-records/SKILL.md` | ADR governance, format, lifecycle, review process, filled example |
 
 ### 02 — Cloud & Infrastructure
 | Skill | Path | Covers |
 |-------|------|--------|
-| Infrastructure as Code | `skills/iac.md` | Terraform/Pulumi, state management, modularity, drift detection |
-| FinOps | `skills/finops.md` | Cost modeling, budget alerts, right-sizing, free tier optimization |
-| Containerization | `skills/containers.md` | Docker best practices, multi-stage, security scanning, orchestration |
-| Observability | `skills/observability.md` | Logging, metrics, tracing, alerting, readiness checklist, SLO defaults |
+| Infrastructure as Code | `infrastructure-as-code/SKILL.md` | Terraform/Pulumi, state management, modularity, drift detection |
+| FinOps | `finops/SKILL.md` | Cost modeling, unit economics, budget alerts, right-sizing |
+| Containerization | `containerization/SKILL.md` | Docker multi-stage, distroless, security scanning, Docker Compose |
+| Observability | `observability/SKILL.md` | Logging, metrics, tracing, SLI/SLO/SLA, Prometheus alerts |
 
 ### 03 — Security & Compliance
 | Skill | Path | Covers |
 |-------|------|--------|
-| Security by Design | `skills/security.md` | OWASP, supply chain, dependency management, SBOM/provenance, secrets, zero trust |
-| Compliance & Privacy | `skills/compliance.md` | GDPR, data residency, audit trail, data retention, assessment framework, evidence pack |
-| Authentication & Authorization | `skills/authn-authz.md` | OAuth2/OIDC, RBAC/ABAC, multi-tenant auth, session management |
+| Security by Design | `security-by-design/SKILL.md` | OWASP, supply chain, dependency management, SBOM/provenance, secrets, zero trust |
+| Compliance & Privacy | `compliance-privacy/SKILL.md` | GDPR, data residency, audit trail, data retention, assessment framework, evidence pack |
+| Authentication & Authorization | `authn-authz/SKILL.md` | OAuth2/OIDC PKCE, RBAC/ABAC, multi-tenant auth, token revocation |
 
 ### 04 — Testing & Quality
 | Skill | Path | Covers |
 |-------|------|--------|
-| Testing Strategy | `skills/strategy.md` | Test pyramid, meaningful coverage, test-first vs test-after |
-| Test Implementation | `skills/implementation.md` | Unit, integration, contract, E2E — tooling and patterns per stack |
-| Performance Testing | `skills/performance.md` | Load testing, benchmarking, profiling, SLO validation |
-| Security Testing | `skills/security-testing.md` | SAST, DAST, dependency/container/IaC scanning, severity policy, exceptions |
-| Quality Gates | `skills/quality-gates.md` | Release-blocking gates, PASS/FAIL verdicts, gate configuration, exception process |
+| Testing Strategy | `testing-strategy/SKILL.md` | Test pyramid, coverage rules, test naming, flaky test policy |
+| Test Implementation | `testing-implementation/SKILL.md` | Unit, integration, contract, E2E — Vitest, MSW, Playwright, XCTest |
+| Performance Testing | `performance-testing/SKILL.md` | Load testing with k6, SLO validation, capacity planning, performance budgets |
+| Security Testing | `security-testing/SKILL.md` | SAST, DAST (ZAP), dependency/container/IaC scanning, severity policy |
+| Quality Gates | `quality-gates/SKILL.md` | Release-blocking gates, PASS/FAIL verdicts, coverage regression detection |
 
 ### 05 — Delivery & Release
 | Skill | Path | Covers |
 |-------|------|--------|
-| CI/CD Pipeline | `skills/cicd.md` | 8-stage CI, CD deploy patterns, branching strategy, GitHub Actions, evidence extraction |
-| Release Management | `skills/release.md` | SemVer automation, Keep a Changelog, multi-audience release notes, rollback, change management, hotfix |
-| Feature Management | `skills/feature-management.md` | Feature flags, progressive rollout, A/B testing, kill switches |
-| Production Readiness Review | `skills/production-readiness.md` | GO/NO-GO framework, NFR checklist, PRR output document, residual risks |
+| CI/CD Pipeline | `cicd-pipeline/SKILL.md` | 8-stage CI, CD deploy patterns, matrix builds, GitHub Actions |
+| Release Management | `release-management/SKILL.md` | SemVer automation, changelog, multi-audience release notes, rollback, hotfix |
+| Feature Management | `feature-management/SKILL.md` | Feature flags, progressive rollout, A/B testing, kill switches, dead flag cleanup |
+| Production Readiness Review | `production-readiness-review/SKILL.md` | GO/NO-GO framework, NFR checklist, PRR output document |
+| Incident Management | `incident-management/SKILL.md` | Severity levels, incident response process, postmortems, MTTD/MTTR |
 
 ### 06 — Documentation & Diagrams
 | Skill | Path | Covers |
 |-------|------|--------|
-| Technical Documentation | `skills/technical-docs.md` | Architecture docs, runbooks, API docs, onboarding guides |
-| Diagrams & Visualization | `skills/diagrams.md` | C4, sequence, deployment, ERD — Mermaid-first, PlantUML when needed |
-| Architecture Communication | `skills/architecture-comms.md` | ADR presentation, Architecture Review, stakeholder communication, architecture documentation structure |
+| Technical Documentation | `technical-documentation/SKILL.md` | README/runbook templates, API docs generation, documentation review |
+| Diagrams & Visualization | `diagrams/SKILL.md` | C4, sequence, deployment, ERD, state — Mermaid-first |
+| Architecture Communication | `architecture-communication/SKILL.md` | ADR presentation, Architecture Review, stakeholder communication |
 
 ### 07 — Data Architecture
 | Skill | Path | Covers |
 |-------|------|--------|
-| Data Modeling & Storage | `skills/data-modeling.md` | Schema design, multi-tenant data isolation, migration strategy |
-| Event-Driven Architecture | `skills/event-driven.md` | Event design, schema registry, eventual consistency, saga patterns |
-| Caching & Search | `skills/caching-search.md` | Redis, Elasticsearch, CDN caching, cache invalidation patterns |
+| Data Modeling & Storage | `data-modeling/SKILL.md` | Schema design, Drizzle migrations, UUID v7, multi-tenant isolation |
+| Event-Driven Architecture | `event-driven-architecture/SKILL.md` | CloudEvents, Pub/Sub, idempotency, schema evolution, saga patterns |
+| Caching & Search | `caching-search/SKILL.md` | Redis, PostgreSQL FTS, cache key design, search indexing pipeline |
+
+### 08 — API & Integration
+| Skill | Path | Covers |
+|-------|------|--------|
+| API Design | `api-design/SKILL.md` | REST conventions, versioning, pagination, RFC 7807 errors, OpenAPI-first |
 
 ---
 
@@ -271,4 +277,4 @@ The skills themselves follow the principle of evolutionary coherence. Each skill
 ---
 
 *Last revision: 2026-02-08*
-*CLAUDE.md version: 1.0.0*
+*CLAUDE.md version: 1.1.0*

@@ -5,6 +5,8 @@ description: "Release management with automated SemVer, changelog generation, re
 
 # Release Management
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Release management with automated SemVer, generated changelogs, multi-audience release notes, rollback strategy, change management coordination, and hotfix workflow.
@@ -108,6 +110,28 @@ Written for API consumers and SDK users.
 
 **Sections**: API changes summary (OpenAPI/AsyncAPI diff), SDK changes and version constraints, Deprecations and timelines.
 
+### Example: Multi-Audience Release Notes for v1.4.0
+
+**Customer-Facing**:
+> **v1.4.0 — February 2026**
+> - **PDF Export**: Export any invoice as a professionally formatted PDF, ready to send to clients
+> - **Faster Dashboard**: Dashboard loads 40% faster for accounts with 1,000+ invoices
+> - **Fixed**: VAT calculation now correctly handles mixed tax rates within a single invoice
+> - **Note**: The old `/api/v1/users` endpoint is deprecated — please migrate to `/api/v2/users` by August 2026
+
+**Ops Release Notes**:
+> **v1.4.0 — Deployment Notes**
+> - **Migration**: Run migration 0042 (adds `pdf_template` column — additive, backward-compatible)
+> - **New dependency**: wkhtmltopdf container sidecar for PDF generation (Cloud Run config updated)
+> - **Monitor**: Watch `pdf_generation_duration_seconds` metric — SLO target p95 < 3s
+> - **Kill switch**: `ops.invoicing.pdf-export` flag disables PDF generation if issues arise
+> - **Rollback**: Safe to rollback to v1.3.x — migration is additive only
+
+**Developer Notes**:
+> **v1.4.0 — API Changes**
+> - `POST /api/v1/tenants/{id}/invoices/{id}/export` — new endpoint, returns PDF binary
+> - `GET /api/v1/users` — deprecated, returns `Deprecation: true` header, sunset: 2026-08-01
+
 ### Mapping from Commits to Notes
 
 | Commit type | Customer Notes | Ops Notes | Dev Notes |
@@ -119,6 +143,53 @@ Written for API consumers and SDK users.
 | `docs:` | Omit | Omit | Keep |
 | `chore/build/ci:` | Omit | If delivery impact | Omit |
 | `BREAKING CHANGE:` | Breaking Changes | Migration steps | Breaking Changes |
+
+### Multi-Audience Release Note Example
+
+**Customer-Facing (v1.4.0)**:
+```markdown
+## What's New in v1.4.0
+
+### Highlights
+- Export invoices as PDF with your company branding
+- Sign in with Apple for faster onboarding
+- Dashboard loads 3x faster for large datasets
+
+### New Features
+- **PDF Export**: Generate branded PDF invoices directly from the invoice detail page. Available for all plans.
+- **Apple Sign-In**: Use your Apple ID to sign in — available on web and iOS.
+
+### Improvements
+- **Dashboard Performance**: Large datasets (1000+ invoices) now load in under 2 seconds.
+
+### Bug Fixes
+- Fixed VAT calculation for invoices with mixed tax rates.
+
+### Security
+- Updated dependencies to address a security advisory (no user action required).
+```
+
+**Ops Release Notes (v1.4.0)**:
+```markdown
+## Ops Notes — v1.4.0
+
+### Deployment
+- Standard blue-green deploy to Cloud Run
+- No database migration in this release
+- New environment variable: `PDF_SERVICE_URL` (already configured in Secret Manager)
+
+### Monitoring
+- Watch: PDF generation latency (new metric `pdf_generation_duration_seconds`)
+- New dashboard: "PDF Service Health" in Grafana
+- Alert: PDF generation error rate > 5% triggers page
+
+### Rollback
+- Safe to rollback — no schema changes
+- PDF feature behind flag `release.invoicing.pdf-export` (kill switch available)
+
+### Feature Flags
+- `release.invoicing.pdf-export`: rolling out 10% → 50% → 100% over 3 days
+```
 
 ---
 
@@ -211,4 +282,4 @@ When configuring release management: `release-please` or `semantic-release` in G
 
 ---
 
-*Internal references*: `cicd.md`, `feature-management.md`, `quality-gates.md`, `adr.md`
+*Internal references*: `cicd-pipeline/SKILL.md`, `feature-management/SKILL.md`, `quality-gates/SKILL.md`, `architecture-decision-records/SKILL.md`

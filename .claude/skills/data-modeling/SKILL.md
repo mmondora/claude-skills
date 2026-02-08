@@ -5,6 +5,8 @@ description: "Schema design, multi-tenant data isolation, and migration manageme
 
 # Data Modeling & Storage
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Schema design, multi-tenant data isolation strategies, and migration management. Database-agnostic in principles, with specific guidance for Firestore and PostgreSQL.
@@ -62,6 +64,48 @@ Choice depends on risk profile and tenant count. Record in ADR.
 ### Tooling
 
 For PostgreSQL: Drizzle Kit or Prisma Migrate (consistent with chosen ORM). Migration files versioned in repo, executed in CI/CD.
+
+### Drizzle Migration Example
+
+```typescript
+// drizzle/schema/invoices.ts
+import { pgTable, uuid, varchar, decimal, timestamp, index } from 'drizzle-orm/pg-core';
+
+export const invoices = pgTable('invoices', {
+  id: uuid('id').primaryKey().defaultRandom(),   // UUID v7 preferred
+  tenantId: uuid('tenant_id').notNull(),
+  invoiceNumber: varchar('invoice_number', { length: 50 }).notNull(),
+  customerName: varchar('customer_name', { length: 255 }).notNull(),
+  totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('EUR'),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  tenantIdx: index('idx_invoices_tenant').on(table.tenantId),
+  tenantStatusIdx: index('idx_invoices_tenant_status').on(table.tenantId, table.status),
+}));
+
+// Generate migration: npx drizzle-kit generate
+// Apply migration: npx drizzle-kit migrate
+```
+
+### UUID v7 Generation
+
+UUID v7 is chronologically sortable (timestamp-based), making it ideal for primary keys with B-tree indexes:
+
+```typescript
+import { uuidv7 } from 'uuidv7';
+
+// Usage in entity creation
+const invoice = {
+  id: uuidv7(),  // e.g., '01903c6a-7e4b-7000-8000-4b6a3f2e1d0c'
+  tenantId: context.tenantId,
+  // ...
+};
+```
+
+UUID v7 advantages over v4: sortable by creation time (better index locality), no need for separate `created_at` index for ordering, and compatible with all UUID-accepting systems.
 
 For Firestore: no traditional migrations. Use idempotent data migration scripts. Version implicit schema in a `schema-version.ts` file with Zod validation.
 

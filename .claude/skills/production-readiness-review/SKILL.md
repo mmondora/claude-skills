@@ -5,6 +5,8 @@ description: "Production readiness GO/NO-GO framework. NFR checklist covering av
 
 # Production Readiness Review (PRR)
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 A structured GO / NO-GO decision framework for production deployments. Ensures non-functional requirements (NFRs) are met before code reaches users.
@@ -143,6 +145,53 @@ Critical items failed. Service must not go to production until:
 
 ## Monitoring Plan
 [Enhanced monitoring for first N days post-launch]
+```
+
+---
+
+## Example PRR Output (Filled In)
+
+```markdown
+# PRR: Invoice API Service — 2026-02-08
+
+## Decision: CONDITIONAL GO
+
+## Participants
+- Mario Rossi (Tech Lead), Anna Bianchi (SRE), Luca Verdi (Security)
+
+## Summary
+Invoice API is ready for production with two conditions: runbook completion
+and load test validation. Core functionality, security, and observability
+meet production standards.
+
+## Checklist Results
+| Area | Status | Notes |
+|------|--------|-------|
+| Availability & Resiliency | PASS | Circuit breaker on Stripe, health endpoints present |
+| Scalability | PASS | Cloud Run auto-scaling, tested to 200 RPS |
+| Observability | PASS | OTel tracing, pino logging, SLO alerts configured |
+| Operability | PARTIAL | Runbook 80% complete — missing rollback steps |
+| Security | PASS | Auth on all endpoints, tenant isolation tested |
+| Data & Compliance | PASS | GDPR checklist complete, audit trail active |
+| Release Safety | PASS | Canary deploy configured, feature flag ready |
+
+## Conditions (CONDITIONAL GO)
+| Condition | Owner | Deadline |
+|-----------|-------|----------|
+| Complete runbook rollback section | @anna | 2026-02-10 |
+| Run full load test at 2x expected peak | @mario | 2026-02-12 |
+
+## Residual Risks
+| Risk | Probability | Impact | Mitigation |
+|------|------------|--------|------------|
+| Stripe API rate limiting under peak | Low | Medium | Circuit breaker + queue |
+| Cold start latency on first request | Medium | Low | min-instances=1 in prod |
+
+## Monitoring Plan
+Enhanced monitoring for first 7 days:
+- Error rate dashboard reviewed every 2 hours
+- p99 latency alert threshold lowered to 1.5s (from 2s)
+- Daily review of Stripe integration metrics
 ```
 
 ---

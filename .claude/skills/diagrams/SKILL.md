@@ -5,6 +5,8 @@ description: "Architectural diagrams as code using Mermaid and C4 model. System 
 
 # Diagrams & Visualization
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Architectural diagrams as code. Mermaid as primary format (renderable in GitHub, IDEs, docs), PlantUML as fallback for complex cases. C4 model as the reference framework.
@@ -72,6 +74,83 @@ sequenceDiagram
 ### Entity Relationship Diagram
 
 For data models. Firestore is schema-less but documents have an implicit structure that must be documented.
+
+```mermaid
+erDiagram
+    TENANT ||--o{ USER : has
+    TENANT ||--o{ INVOICE : owns
+    USER ||--o{ INVOICE : creates
+    INVOICE ||--|{ LINE_ITEM : contains
+    INVOICE }o--|| INVOICE_STATUS : has
+
+    TENANT {
+        uuid id PK
+        string name
+        string plan
+        timestamp created_at
+    }
+    USER {
+        uuid id PK
+        uuid tenant_id FK
+        string email
+        string role
+    }
+    INVOICE {
+        uuid id PK
+        uuid tenant_id FK
+        uuid created_by FK
+        string status
+        decimal total_amount
+        string currency
+        timestamp created_at
+    }
+    LINE_ITEM {
+        uuid id PK
+        uuid invoice_id FK
+        string description
+        decimal amount
+        int quantity
+    }
+```
+
+### Deployment Diagram
+
+For infrastructure and deployment topology:
+
+```mermaid
+graph TB
+    subgraph "GCP — europe-west1"
+        subgraph "Cloud Run"
+            API["API Service<br/>2 instances min"]
+            Worker["Event Worker<br/>0 instances min"]
+        end
+        subgraph "Data"
+            FS[("Firestore<br/>Native mode")]
+            Redis["Memorystore<br/>Redis 7"]
+        end
+        subgraph "Messaging"
+            PS["Pub/Sub"]
+            DLQ["Dead Letter Queue"]
+        end
+        subgraph "Security"
+            SM["Secret Manager"]
+            IAM["Cloud IAM"]
+        end
+    end
+    subgraph "External"
+        CDN["Cloud CDN"]
+        LB["Cloud Load Balancer"]
+        Users["Users"]
+    end
+    Users --> CDN --> LB --> API
+    API --> FS
+    API --> Redis
+    API --> PS
+    PS --> Worker
+    PS --> DLQ
+    Worker --> FS
+    API --> SM
+```
 
 ### State Diagram
 

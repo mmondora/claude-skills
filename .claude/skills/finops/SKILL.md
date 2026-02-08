@@ -5,6 +5,8 @@ description: "Cloud cost management as an architectural discipline. Unit economi
 
 # FinOps
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Cloud cost management as an architectural discipline. Every technical choice has a cost — make it explicit, measurable, and governable.
@@ -61,10 +63,115 @@ Every ADR with infrastructure impact must include a "Cost Impact" section with: 
 
 ---
 
+## Cost Modeling
+
+Calculate cost-per-request for serverless workloads:
+
+```
+Cloud Run cost per request =
+  (CPU allocation × CPU price per vCPU-second × avg request duration) +
+  (Memory allocation × memory price per GiB-second × avg request duration) +
+  (request charge per million × 1/1,000,000)
+```
+
+**Example** (Cloud Run, europe-west1, 2026 pricing estimates):
+- 1 vCPU, 512 MiB, avg 200ms per request
+- CPU: 1 × $0.000024/s × 0.2s = $0.0000048
+- Memory: 0.5 × $0.0000025/s × 0.2s = $0.00000025
+- Per-request: ~$0.0000051
+- 1M requests/month: ~$5.10
+
+### Unit Economics Table
+
+| Scale | Requests/month | Cloud Run cost | Firestore cost (est.) | Total | Cost per user |
+|-------|---------------|----------------|----------------------|-------|---------------|
+| Startup | 100K | ~$0.51 | Free tier | ~$1 | $0.01 |
+| Growth | 1M | ~$5.10 | ~$5 | ~$10 | $0.01 |
+| Scale | 10M | ~$51 | ~$50 | ~$100 | $0.01 |
+| Enterprise | 100M | ~$510 | ~$500 | ~$1,000 | $0.01 |
+
+*Estimates — always verify with GCP Pricing Calculator for current rates.*
+
+---
+
+## Right-Sizing Methodology
+
+Review resource utilization monthly. Action thresholds:
+
+| Metric | Under-utilized | Right-sized | Over-provisioned |
+|--------|---------------|-------------|------------------|
+| CPU avg | < 10% | 20-60% | > 80% sustained |
+| Memory avg | < 20% | 30-70% | > 85% sustained |
+| Action | Downsize | Monitor | Upsize or investigate |
+
+Process: pull 30-day utilization metrics → identify resources below threshold → create right-sizing ticket → resize in non-prod first → validate → resize in prod.
+
+---
+
+## Budget Alerts (Terraform)
+
+```hcl
+resource "google_billing_budget" "project_budget" {
+  billing_account = var.billing_account_id
+  display_name    = "${var.project}-monthly-budget"
+
+  budget_filter {
+    projects = ["projects/${var.project_id}"]
+  }
+
+  amount {
+    specified_amount {
+      currency_code = "EUR"
+      units         = var.monthly_budget_eur
+    }
+  }
+
+  threshold_rules {
+    threshold_percent = 0.5
+    spend_basis       = "CURRENT_SPEND"
+  }
+  threshold_rules {
+    threshold_percent = 0.8
+  }
+  threshold_rules {
+    threshold_percent = 1.0
+  }
+
+  all_updates_rule {
+    monitoring_notification_channels = var.notification_channels
+    enable_project_level_recipients  = true
+  }
+}
+```
+
+---
+
+## Monthly Cost Review Checklist
+
+- [ ] Compare actual vs budget — flag variance > 10%
+- [ ] Review top 5 cost items — any unexpected growth?
+- [ ] Check for idle resources (unattached disks, stopped VMs, unused IPs)
+- [ ] Verify non-prod environments scale to zero outside business hours
+- [ ] Review Committed Use Discount utilization (if applicable)
+- [ ] Update unit economics with actual numbers
+- [ ] Flag any new resources created without cost-center label
+
+---
+
+## Anti-Patterns
+
+- **"We'll optimize later"**: cost grows exponentially if not managed from day one
+- **No cost allocation labels**: if you can't attribute cost, you can't optimize it
+- **Over-provisioning "for safety"**: size for measured load + 30% buffer, not 10x "just in case"
+- **Ignoring free tier limits**: free tier changes — set alerts at 80% of free tier limit
+- **No unit economics**: total cost without per-user/per-request context is meaningless
+
+---
+
 ## For Claude Code
 
 When generating infra: prefer serverless/pay-per-use, include cost allocation labels, suggest scale-to-zero for non-prod, and in every ADR estimate monthly cost. Do not suggest always-on resources without explicit justification.
 
 ---
 
-*Internal references*: `cloud-architecture.md`, `adr.md`, `iac.md`
+*Internal references*: `infrastructure-as-code/SKILL.md`, `architecture-decision-records/SKILL.md`, `observability/SKILL.md`

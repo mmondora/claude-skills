@@ -5,6 +5,8 @@ description: "Formal quality gates that block releases. Tests, static quality, s
 
 # Quality Gates
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Formal, automated gates that block releases when quality or engineering standards are not met. Gates produce a PASS/FAIL verdict — there is no "maybe."
@@ -31,11 +33,19 @@ Formal, automated gates that block releases when quality or engineering standard
 | Branch coverage — domain layer | >= 80% | Yes |
 | Branch coverage — application layer | >= 70% | Yes |
 | Branch coverage — global | >= 70% | Yes |
-| Coverage regression | no drop > 2% from main | Yes |
+| Coverage regression | no drop > 2% from main (see formula below) | Yes |
 | Flaky tests | zero in release pipeline | Yes |
 | Contract tests | 100% pass | Yes (release gate) |
 
 Flaky test policy: a test that fails intermittently is quarantined (moved to a separate suite), tracked with a ticket, and has 1 sprint to be fixed or deleted.
+
+**Coverage regression formula**:
+```
+regression = PR_branch_coverage - main_branch_coverage
+if regression < -2.0:
+    FAIL("Coverage dropped by {regression}% — threshold is -2%")
+```
+Coverage is measured as branch coverage percentage. Main branch baseline is stored as a CI artifact and updated on each merge to main.
 
 ### 2. Static Quality Gate
 

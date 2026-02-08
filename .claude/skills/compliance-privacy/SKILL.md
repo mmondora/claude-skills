@@ -5,6 +5,8 @@ description: "GDPR compliance and privacy as architectural constraints. Data min
 
 # Compliance & Privacy
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Compliance and privacy requirements as architectural constraints. GDPR as baseline (operating in EU/Italy), with formal assessment framework, evidence pack generation, and attention to data residency, audit trail, and data retention.
@@ -22,6 +24,50 @@ Collect only data necessary for the declared purpose. Every PII field has a docu
 Architecture must support complete deletion of a user's data. This means: knowing where all of a user's data is (data map), being able to delete or anonymize it across all systems (including backups, logs, caches, analytics) within a reasonable time.
 
 Architectural implication: if using Event Sourcing, events with PII must support crypto-shredding (encrypt PII with a per-user key, delete the key to "forget"). If logs contain PII, they must have retention policies with auto-delete.
+
+### GDPR Deletion Workflow (Right to Be Forgotten)
+
+Implementation steps for processing a data deletion request:
+
+```typescript
+async function processDataDeletionRequest(userId: string, tenantId: string): Promise<DeletionReport> {
+  const report: DeletionReport = { userId, requestedAt: new Date(), actions: [] };
+
+  // 1. Primary data stores
+  await userRepository.anonymize(tenantId, userId);         // Replace PII with placeholder
+  report.actions.push({ store: 'users', action: 'anonymized' });
+
+  await invoiceRepository.anonymizeByUser(tenantId, userId); // Anonymize user ref in invoices
+  report.actions.push({ store: 'invoices', action: 'anonymized' });
+
+  // 2. Cache invalidation
+  await cacheService.invalidateUser(tenantId, userId);
+  report.actions.push({ store: 'cache', action: 'invalidated' });
+
+  // 3. Search index
+  await searchService.removeUserDocuments(tenantId, userId);
+  report.actions.push({ store: 'search-index', action: 'removed' });
+
+  // 4. Analytics (anonymize, don't delete — retain aggregated data)
+  await analyticsService.anonymizeUser(tenantId, userId);
+  report.actions.push({ store: 'analytics', action: 'anonymized' });
+
+  // 5. Audit log entry (the deletion request itself is an auditable event)
+  await auditLog.record({
+    action: 'gdpr.data_deletion',
+    tenantId,
+    userId: 'SYSTEM',
+    detail: `Data deletion processed for user ${userId}`,
+  });
+
+  // 6. Schedule: backups containing this user's data will expire per retention policy
+  report.backupNote = 'Backups containing user data will expire within 30-day retention window';
+
+  return report;
+}
+```
+
+Key principles: anonymize rather than delete where referential integrity matters (invoices need line items, just not PII). Log the deletion action itself for audit compliance. Backups are covered by retention policy — not individually scrubbed.
 
 ### Data Portability (Art. 20)
 

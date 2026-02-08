@@ -5,6 +5,8 @@ description: "Logging, metrics, and tracing with OpenTelemetry. Structured JSON 
 
 # Observability
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 The system tells its own story. Logging, metrics, and tracing are architectural tools that make system behavior visible, understandable, and diagnosable without attaching a debugger.
@@ -60,11 +62,59 @@ async function createInvoice(data: CreateInvoiceInput) {
 
 ---
 
+## SLI / SLO / SLA
+
+**SLI (Service Level Indicator)**: a quantitative measure of service behavior. Examples: request latency (p95), error rate, availability percentage. SLIs are the raw measurements — objective, measurable, automated.
+
+**SLO (Service Level Objective)**: a target value for an SLI. "99.9% of requests complete in < 500ms." SLOs are internal engineering targets — aggressive enough to ensure good user experience, achievable enough not to be ignored.
+
+**SLA (Service Level Agreement)**: a contractual commitment to customers, with consequences for breach. SLAs are always looser than SLOs (e.g., SLO = 99.9%, SLA = 99.5%). If you only alert on SLA breach, you've already lost — alert on SLO breach to fix before SLA is impacted.
+
+**Error budget**: the inverse of SLO. If SLO = 99.9% availability, error budget = 0.1% downtime per month (~43 minutes). When error budget is exhausted, stop releasing features and focus on reliability.
+
+---
+
 ## Alerting
 
 **Alert on symptoms, not causes.** Alert on "latency p99 > 2s" (symptom), not "CPU > 80%" (cause that might not have impact). Alerts must be actionable: the recipient knows what to do.
 
 **SLO-based alerting**: define Service Level Objectives (e.g., "99.9% of requests completed in < 500ms") and alert when error budget is being exhausted. More effective than static threshold alerts.
+
+### Prometheus Alert Rule Example
+
+```yaml
+# prometheus/alerts/slo-alerts.yml
+groups:
+  - name: slo-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.001
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Error rate exceeds SLO (> 0.1%)"
+          description: "Current error rate: {{ $value | humanizePercentage }}"
+          runbook: "https://wiki.internal/runbooks/high-error-rate"
+
+      - alert: HighLatencyP99
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))
+          > 2
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "p99 latency exceeds 2s SLO"
+          runbook: "https://wiki.internal/runbooks/high-latency"
+```
 
 ---
 

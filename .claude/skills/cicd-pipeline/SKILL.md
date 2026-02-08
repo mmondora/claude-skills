@@ -5,6 +5,8 @@ description: "CI/CD pipeline design with GitHub Actions. Pipeline stages, cachin
 
 # CI/CD Pipeline
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 CI/CD pipeline design with GitHub Actions. The pipeline is critical infrastructure — treat it as production code.
@@ -160,7 +162,61 @@ jobs:
       - uses: returntocorp/semgrep-action@v1
 ```
 
-**Caching**: `actions/cache` for node_modules (key based on package-lock.json hash). **Secrets**: GitHub Secrets for sensitive values. Workload Identity Federation for GCP auth (no service account key JSON). **Matrix build**: for testing across Node.js versions or multi-platform if needed.
+### Matrix Build Example
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test -- --coverage
+      - name: Upload coverage
+        if: matrix.node-version == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+```
+
+Use matrix builds for: testing across Node.js LTS versions, multi-platform builds (linux, macos), testing against multiple database versions. Keep matrices small — combinatorial explosion wastes CI minutes.
+
+**Caching**: `actions/cache` for node_modules (key based on package-lock.json hash). **Secrets**: GitHub Secrets for sensitive values. Workload Identity Federation for GCP auth (no service account key JSON).
+
+### Matrix Build Example
+
+```yaml
+# Test across Node.js versions and OS
+jobs:
+  test:
+    strategy:
+      matrix:
+        node-version: [20, 22]
+        os: [ubuntu-latest]
+        include:
+          - node-version: 22
+            os: macos-latest  # Also test on macOS for native deps
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+```
+
+Use matrix builds for: multiple Node.js versions (LTS + current), multi-platform testing when native dependencies exist, or testing against multiple database versions.
 
 ### CI Evidence Extraction
 
@@ -188,4 +244,4 @@ When generating pipelines: structure CI in parallel jobs where possible (lint an
 
 ---
 
-*Internal references*: `containers.md`, `testing-strategy.md`, `feature-management.md`, `quality-gates.md`, `release.md`
+*Internal references*: `containerization/SKILL.md`, `testing-strategy/SKILL.md`, `feature-management/SKILL.md`, `quality-gates/SKILL.md`, `release-management/SKILL.md`

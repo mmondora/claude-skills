@@ -5,6 +5,8 @@ description: "Event-driven systems with CloudEvents and GCP Pub/Sub. Event desig
 
 # Event-Driven Architecture
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Design of event-driven systems with CloudEvents as standard format, GCP Pub/Sub as backbone, and patterns for guaranteeing consistency, idempotency, and event evolvability.
@@ -81,6 +83,80 @@ const InvoiceCreatedV1 = z.object({
 In an event-driven system, consistency between services is eventual, not immediate. This is an architectural trade-off to communicate explicitly to the business.
 
 **UI patterns for eventual consistency**: show "processing" state for async operations, use optimistic updates for immediate feedback, polling or WebSocket for updates when event is processed.
+
+---
+
+## Pub/Sub Publisher & Subscriber Examples
+
+### Publisher
+
+```typescript
+import { PubSub } from '@google-cloud/pubsub';
+import { v7 as uuidv7 } from 'uuidv7';
+
+const pubsub = new PubSub();
+
+async function publishEvent<T>(topicName: string, type: string, data: T, context: EventContext): Promise<string> {
+  const event: DomainEvent<T> = {
+    specversion: '1.0',
+    id: uuidv7(),
+    type,
+    source: '/services/invoice-api',
+    time: new Date().toISOString(),
+    datacontenttype: 'application/json',
+    tenantid: context.tenantId,
+    correlationid: context.correlationId,
+    causationid: context.causationId ?? context.correlationId,
+    data,
+  };
+
+  const messageId = await pubsub.topic(topicName).publishMessage({
+    json: event,
+    orderingKey: context.tenantId, // Order by tenant
+  });
+
+  logger.info({ eventType: type, messageId, tenantId: context.tenantId }, 'Event published');
+  return messageId;
+}
+```
+
+### Subscriber with Idempotency
+
+```typescript
+import { Message } from '@google-cloud/pubsub';
+
+const processedEvents = new Set<string>(); // In production: use Redis or DB
+
+async function handleMessage(message: Message): Promise<void> {
+  const event: DomainEvent = JSON.parse(message.data.toString());
+
+  // Idempotency check — skip already-processed events
+  if (await isAlreadyProcessed(event.id)) {
+    logger.info({ eventId: event.id }, 'Duplicate event — skipping');
+    message.ack();
+    return;
+  }
+
+  try {
+    await processEvent(event);
+    await markAsProcessed(event.id);
+    message.ack();
+  } catch (error) {
+    logger.error({ eventId: event.id, error }, 'Event processing failed');
+    message.nack(); // Will retry (up to DLQ threshold)
+  }
+}
+
+async function isAlreadyProcessed(eventId: string): Promise<boolean> {
+  // Redis: SETNX with TTL, or DB lookup
+  const exists = await redis.get(`processed:${eventId}`);
+  return exists !== null;
+}
+
+async function markAsProcessed(eventId: string): Promise<void> {
+  await redis.set(`processed:${eventId}`, '1', { EX: 86400 }); // 24h TTL
+}
+```
 
 ---
 

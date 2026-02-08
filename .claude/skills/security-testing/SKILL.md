@@ -5,6 +5,8 @@ description: "Automated security testing in CI. SAST, DAST, dependency scanning,
 
 # Security Testing
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Automated security testing integrated into the development cycle. SAST, DAST, dependency scanning, authorization testing, secret detection, and container/IaC scanning.
@@ -25,7 +27,31 @@ Rules: block PR on CRITICAL/HIGH findings. WARNING as a comment in PR review.
 
 Testing the running application for runtime vulnerabilities. OWASP ZAP as automated scanner in staging.
 
-Workflow: deploy to staging → run ZAP baseline scan → report → fix before production. Cadence: on every release candidate. Full active scan weekly.
+Workflow: deploy to staging -> run ZAP baseline scan -> report -> fix before production. Cadence: on every release candidate. Full active scan weekly.
+
+### ZAP Baseline Scan Configuration
+
+```yaml
+# .github/workflows/dast.yml
+- name: OWASP ZAP Baseline Scan
+  uses: zaproxy/action-baseline@v0.10
+  with:
+    target: 'https://staging.example.com'
+    rules_file_name: 'zap-rules.tsv'
+    cmd_options: '-a -j'  # AJAX spider, JSON report
+
+# zap-rules.tsv — customize alert thresholds
+# Rule ID  Action  Description
+10010      WARN    Cookie No HttpOnly Flag
+10011      WARN    Cookie Without Secure Flag
+10015      FAIL    Incomplete or No Cache-control Header
+10020      FAIL    X-Frame-Options Header Not Set
+10021      FAIL    X-Content-Type-Options Header Missing
+10038      FAIL    Content Security Policy Header Not Set
+40012      FAIL    Cross Site Scripting (Reflected)
+40014      FAIL    Cross Site Scripting (Persistent)
+90011      FAIL    Charset Mismatch
+```
 
 ---
 

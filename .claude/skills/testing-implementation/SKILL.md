@@ -5,6 +5,8 @@ description: "Concrete test tooling and patterns for TypeScript and Swift. Vites
 
 # Test Implementation
 
+> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+
 ## Purpose
 
 Concrete tooling and patterns for implementing tests on every stack: TypeScript (backend/frontend), Swift (iOS).
@@ -73,6 +75,57 @@ final class WineCellarViewModelTests: XCTestCase {
 ```
 
 **UI test**: XCUITest for critical E2E flows. SwiftUI previews as first-level visual verification (not a substitute for tests, but a rapid complement).
+
+---
+
+## Mocking External APIs
+
+Use MSW (Mock Service Worker) for intercepting HTTP requests in tests — works at the network level, no code changes needed:
+
+```typescript
+import { setupServer } from 'msw/node';
+import { http, HttpResponse } from 'msw';
+
+const server = setupServer(
+  // Mock external payment API
+  http.post('https://api.stripe.com/v1/charges', () => {
+    return HttpResponse.json({
+      id: 'ch_test_123',
+      status: 'succeeded',
+      amount: 10000,
+      currency: 'eur',
+    });
+  }),
+
+  // Mock external email service
+  http.post('https://api.sendgrid.com/v3/mail/send', () => {
+    return new HttpResponse(null, { status: 202 });
+  }),
+);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+describe('PaymentService', () => {
+  it('processes payment via Stripe', async () => {
+    const result = await paymentService.charge({ amount: 100, currency: 'EUR' });
+    expect(result.status).toBe('succeeded');
+  });
+
+  it('handles Stripe failure gracefully', async () => {
+    server.use(
+      http.post('https://api.stripe.com/v1/charges', () => {
+        return HttpResponse.json({ error: { message: 'Card declined' } }, { status: 402 });
+      }),
+    );
+    await expect(paymentService.charge({ amount: 100, currency: 'EUR' }))
+      .rejects.toThrow('Card declined');
+  });
+});
+```
+
+MSW is preferred over `vi.mock()` for HTTP-based APIs because: it tests the real HTTP client code, works with any HTTP library, and mocks can be shared between tests.
 
 ---
 

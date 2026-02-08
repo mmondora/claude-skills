@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ─────────────────────────────────────────────────────────────
+# pre-commit hook
+# Auto-updates README.md skills catalog before each commit.
+#
+# Setup: git config core.hooksPath .githooks
+# ─────────────────────────────────────────────────────────────
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Only run if skills or README changed (or on first run)
+if git diff --cached --name-only | grep -qE '(\.claude/skills/|README\.md)' \
+   || ! grep -q '<!-- SKILLS_START -->' "$REPO_ROOT/README.md" 2>/dev/null; then
+
+  "$REPO_ROOT/scripts/generate-readme.sh"
+
+  # Stage the updated README
+  git add "$REPO_ROOT/README.md"
+fi

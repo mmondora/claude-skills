@@ -4,14 +4,16 @@ set -euo pipefail
 # ─────────────────────────────────────────────────────────────
 # install-skills.sh
 # Installs Claude Code skills into a target project.
-# Unpacks skills from claude-skills.zip into <target>/.claude/skills/
-# and optionally patches/creates CLAUDE.md with skill references.
+# Unpacks skills from claude-skills.zip into <target>/.claude/skills/,
+# patches/creates CLAUDE.md with skill references, sets up a
+# pre-commit hook that auto-updates README.md with the skills catalog.
 #
 # Usage:
-#   ./scripts/install-skills.sh <target-project-path> [--no-patch] [--force]
+#   ./scripts/install-skills.sh <target-project-path> [--no-patch] [--no-hooks] [--force]
 #
 # Options:
-#   --no-patch   Skip CLAUDE.md patching (only install skills)
+#   --no-patch   Skip CLAUDE.md patching
+#   --no-hooks   Skip pre-commit hook and README.md setup
 #   --force      Overwrite existing skills without prompting
 # ─────────────────────────────────────────────────────────────
 
@@ -30,24 +32,27 @@ NC='\033[0m'
 # ── Parse arguments ──
 TARGET=""
 NO_PATCH=false
+NO_HOOKS=false
 FORCE=false
 
 for arg in "$@"; do
   case "$arg" in
     --no-patch) NO_PATCH=true ;;
+    --no-hooks) NO_HOOKS=true ;;
     --force) FORCE=true ;;
     --help|-h)
       echo -e "${BOLD}claude-skills installer${NC}"
       echo ""
-      echo "Usage: ./scripts/install-skills.sh <target-project-path> [--no-patch] [--force]"
+      echo "Usage: ./scripts/install-skills.sh <target-project-path> [--no-patch] [--no-hooks] [--force]"
       echo ""
       echo "Options:"
-      echo "  --no-patch   Skip CLAUDE.md patching (only install skills)"
+      echo "  --no-patch   Skip CLAUDE.md patching"
+      echo "  --no-hooks   Skip pre-commit hook and README.md setup"
       echo "  --force      Overwrite existing skills without prompting"
       echo ""
-      echo "This script unpacks 23 Claude Code skills from claude-skills.zip"
-      echo "into <target>/.claude/skills/ and optionally adds a skill reference"
-      echo "table to the target project's CLAUDE.md."
+      echo "This script unpacks Claude Code skills from claude-skills.zip"
+      echo "into <target>/.claude/skills/, patches CLAUDE.md, and sets up"
+      echo "a pre-commit hook that auto-updates README.md with the skills catalog."
       exit 0
       ;;
     *)
@@ -214,6 +219,105 @@ ${MARKER_END}"
 HEREDOC
     echo "$SKILLS_BLOCK" >> "$CLAUDE_MD"
     echo -e "${GREEN}Created CLAUDE.md with skills section${NC}"
+  fi
+fi
+
+# ── Install pre-commit hook + generate-readme.sh ──
+if [ "$NO_HOOKS" = true ]; then
+  echo ""
+  echo -e "${CYAN}Skipping hooks and README setup (--no-hooks)${NC}"
+else
+  # Check if target is a git repo
+  if ! git -C "$TARGET" rev-parse --git-dir > /dev/null 2>&1; then
+    echo ""
+    echo -e "${YELLOW}Target is not a git repository — skipping hooks setup${NC}"
+  else
+    echo ""
+    echo -e "${CYAN}Setting up auto-README...${NC}"
+
+    # ── Copy generate-readme.sh ──
+    mkdir -p "${TARGET}/scripts"
+    cp "${REPO_ROOT}/scripts/generate-readme.sh" "${TARGET}/scripts/generate-readme.sh"
+    chmod +x "${TARGET}/scripts/generate-readme.sh"
+    echo -e "  ${GREEN}[installed]${NC} scripts/generate-readme.sh"
+
+    # ── Set up pre-commit hook ──
+    HOOKS_DIR="${TARGET}/.githooks"
+    HOOK_FILE="${HOOKS_DIR}/pre-commit"
+    HOOK_MARKER="# claude-skills:generate-readme"
+
+    mkdir -p "$HOOKS_DIR"
+
+    if [ -f "$HOOK_FILE" ]; then
+      if grep -q "$HOOK_MARKER" "$HOOK_FILE"; then
+        echo -e "  ${GREEN}[exists]${NC}    .githooks/pre-commit (already configured)"
+      else
+        # Append to existing hook
+        cat >> "$HOOK_FILE" << 'HOOKEOF'
+
+# claude-skills:generate-readme
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+if git diff --cached --name-only | grep -qE '(\.claude/skills/|README\.md)' \
+   || ! grep -q '<!-- SKILLS_START -->' "$REPO_ROOT/README.md" 2>/dev/null; then
+  "$REPO_ROOT/scripts/generate-readme.sh"
+  git add "$REPO_ROOT/README.md"
+fi
+HOOKEOF
+        echo -e "  ${GREEN}[appended]${NC}  .githooks/pre-commit"
+      fi
+    else
+      cat > "$HOOK_FILE" << 'HOOKEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+# claude-skills:generate-readme
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+if git diff --cached --name-only | grep -qE '(\.claude/skills/|README\.md)' \
+   || ! grep -q '<!-- SKILLS_START -->' "$REPO_ROOT/README.md" 2>/dev/null; then
+  "$REPO_ROOT/scripts/generate-readme.sh"
+  git add "$REPO_ROOT/README.md"
+fi
+HOOKEOF
+      echo -e "  ${GREEN}[created]${NC}   .githooks/pre-commit"
+    fi
+    chmod +x "$HOOK_FILE"
+
+    # ── Configure git hooks path ──
+    git -C "$TARGET" config core.hooksPath .githooks
+    echo -e "  ${GREEN}[configured]${NC} git core.hooksPath → .githooks"
+
+    # ── Ensure README.md has markers ──
+    TARGET_README="${TARGET}/README.md"
+    if [ ! -f "$TARGET_README" ]; then
+      # Create README with markers
+      PROJECT_NAME="$(basename "$TARGET")"
+      cat > "$TARGET_README" << READMEEOF
+# ${PROJECT_NAME}
+
+## Skills Catalog
+
+<!-- SKILLS_START -->
+<!-- SKILLS_END -->
+READMEEOF
+      echo -e "  ${GREEN}[created]${NC}   README.md"
+    elif ! grep -q '<!-- SKILLS_START -->' "$TARGET_README"; then
+      # Append skills section with markers
+      cat >> "$TARGET_README" << 'READMEEOF'
+
+## Skills Catalog
+
+<!-- SKILLS_START -->
+<!-- SKILLS_END -->
+READMEEOF
+      echo -e "  ${GREEN}[patched]${NC}   README.md (added skills catalog section)"
+    fi
+
+    # ── Run generate-readme.sh to populate catalog ──
+    if [ -f "${TARGET}/scripts/generate-readme.sh" ] && grep -q '<!-- SKILLS_START -->' "$TARGET_README" 2>/dev/null; then
+      "${TARGET}/scripts/generate-readme.sh" > /dev/null 2>&1 && \
+        echo -e "  ${GREEN}[generated]${NC} README.md skills catalog" || \
+        echo -e "  ${YELLOW}[warning]${NC}   Could not auto-generate README catalog"
+    fi
   fi
 fi
 

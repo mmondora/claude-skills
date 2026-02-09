@@ -5,7 +5,7 @@ description: "Infrastructure as Code with Terraform and Pulumi. State management
 
 # Infrastructure as Code
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -140,6 +140,108 @@ export const serviceUrl = service.uri;
 ## Secrets in IaC
 
 Never secrets in .tf or .tfvars files. Use GCP Secret Manager referenced from Terraform, or Pulumi Config with encryption. Sensitive values marked `sensitive = true` in Terraform (hidden from plan output).
+
+### Secret Manager with Terraform
+
+```hcl
+resource "google_secret_manager_secret" "db_password" {
+  secret_id = "${var.project}-${var.environment}-db-password"
+  replication { auto {} }
+  labels = { environment = var.environment, managed-by = "terraform" }
+}
+
+# Reference in Cloud Run
+resource "google_cloud_run_v2_service" "api" {
+  # ...
+  template {
+    containers {
+      env {
+        name = "DATABASE_PASSWORD"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.db_password.secret_id
+            version = "latest"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## Policy-as-Code
+
+Validate infrastructure compliance before apply:
+
+**Checkov**: scans Terraform for security misconfigurations (public buckets, missing encryption, overly permissive IAM).
+
+**OPA (Open Policy Agent)**: custom policies for organizational rules.
+
+```yaml
+# In CI — run Checkov on Terraform
+- name: Checkov IaC scan
+  uses: bridgecrewio/checkov-action@v12
+  with:
+    directory: infra/
+    framework: terraform
+    soft_fail: false  # Block PR on failure
+```
+
+### Provider Version Constraints
+
+Always pin provider versions to avoid breaking changes:
+
+```hcl
+terraform {
+  required_version = ">= 1.7.0"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.20"  # Allow patch updates only
+    }
+  }
+}
+```
+
+### Importing Existing Resources
+
+For resources created manually (ClickOps debt):
+
+```bash
+# Import existing resource into Terraform state
+terraform import google_cloud_run_v2_service.api projects/my-project/locations/europe-west1/services/my-api
+
+# Then write the matching HCL and run plan to verify
+terraform plan  # Should show "No changes"
+```
+
+Document every import in a ticket. Goal: zero un-managed resources.
+
+### Remote State References
+
+Access outputs from other Terraform state files:
+
+```hcl
+data "terraform_remote_state" "networking" {
+  backend = "gcs"
+  config = {
+    bucket = "myproject-terraform-state"
+    prefix = "networking"
+  }
+}
+
+# Use outputs from networking state
+resource "google_cloud_run_v2_service" "api" {
+  # ...
+  template {
+    vpc_access {
+      connector = data.terraform_remote_state.networking.outputs.vpc_connector_id
+    }
+  }
+}
+```
 
 ---
 

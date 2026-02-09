@@ -5,7 +5,7 @@ description: "Architectural diagrams as code using Mermaid and C4 model. System 
 
 # Diagrams & Visualization
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -169,6 +169,64 @@ stateDiagram-v2
     Void --> [*]
 ```
 
+### Data Flow Diagram
+
+For privacy reviews and compliance (see `compliance-privacy/SKILL.md`). Shows how data moves through the system with trust boundaries:
+
+```mermaid
+graph LR
+    subgraph "Trust Boundary: Client"
+        Browser["Browser"]
+    end
+    subgraph "Trust Boundary: API"
+        API["API Service"]
+        Auth["Auth Middleware"]
+    end
+    subgraph "Trust Boundary: Data"
+        DB[("PostgreSQL")]
+        Cache["Redis"]
+    end
+    subgraph "Trust Boundary: External"
+        Stripe["Stripe API"]
+        Email["SendGrid"]
+    end
+    Browser -->|"HTTPS + JWT"| Auth
+    Auth -->|"Validated request"| API
+    API -->|"TLS + RLS"| DB
+    API -->|"TLS"| Cache
+    API -->|"TLS + API Key"| Stripe
+    API -->|"TLS + API Key"| Email
+```
+
+Use data flow diagrams for: GDPR data mapping, threat modeling (STRIDE), and security reviews.
+
+### PlantUML Example
+
+For diagrams too complex for Mermaid (large sequence diagrams, complex class diagrams):
+
+```plantuml
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Business User", "Creates and manages invoices")
+System_Boundary(platform, "Invoice Platform") {
+  Container(spa, "Web App", "React", "Invoice management UI")
+  Container(api, "API Service", "Node.js/Fastify", "Business logic and API")
+  ContainerDb(db, "Database", "PostgreSQL", "Stores invoices and users")
+  Container(worker, "Event Worker", "Cloud Run Job", "Async processing")
+}
+System_Ext(stripe, "Stripe", "Payment processing")
+
+Rel(user, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "REST/JSON")
+Rel(api, db, "Reads/Writes", "TLS")
+Rel(api, worker, "Events", "Pub/Sub")
+Rel(api, stripe, "Charges", "HTTPS")
+@enduml
+```
+
+Use PlantUML when: C4 diagrams with PlantUML-C4 library offer better layout than Mermaid C4, or when diagrams need features Mermaid doesn't support (notes, grouping, advanced styling).
+
 ---
 
 ## Principles
@@ -187,4 +245,4 @@ When generating diagrams: Mermaid as default, appropriate C4 level for context (
 
 ---
 
-*Internal references*: `technical-docs.md`, `architecture-comms.md`, `domain-modeling.md`
+*Internal references*: `technical-documentation/SKILL.md`, `architecture-communication/SKILL.md`, `data-modeling/SKILL.md`

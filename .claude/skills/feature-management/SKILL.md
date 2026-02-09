@@ -5,7 +5,7 @@ description: "Feature flags, progressive rollout, A/B testing, and kill switches
 
 # Feature Management
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -60,6 +60,8 @@ interface FlagContext {
 ### Flag Evaluation with Context
 
 ```typescript
+import { createHash } from 'node:crypto';
+
 class FirestoreFeatureFlagService implements FeatureFlagService {
   async isEnabled(flagName: string, context: FlagContext): Promise<boolean> {
     const flag = await this.getFlagConfig(flagName);
@@ -77,17 +79,16 @@ class FirestoreFeatureFlagService implements FeatureFlagService {
 
     // Percentage rollout (deterministic hash for consistency)
     if (flag.rolloutPercentage !== undefined) {
-      const hash = this.hashKey(`${flagName}:${context.tenantId}`);
-      return (hash % 100) < flag.rolloutPercentage;
+      return this.hashKey(`${flagName}:${context.tenantId}`) < flag.rolloutPercentage;
     }
 
     return true;
   }
 
   private hashKey(key: string): number {
-    let hash = 0;
-    for (const char of key) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
-    return Math.abs(hash);
+    // Use MD5 for uniform distribution across percentage buckets
+    const hash = createHash('md5').update(key).digest();
+    return hash.readUInt32BE(0) % 100;
   }
 }
 ```
@@ -129,6 +130,32 @@ Before declaring a winner: minimum sample size per variant (use a sample size ca
 ## Kill Switch
 
 Every integration with external services has a kill switch. If the external service is down, the kill switch disables the feature and the system degrades gracefully. Automatable: linked to circuit breaker, activates when circuit breaker is OPEN for > N minutes.
+
+### Automated Kill Switch
+
+```typescript
+// Circuit breaker triggers automatic kill switch
+circuitBreaker.on('open', async (serviceName: string) => {
+  const flagName = `ops.${serviceName}.integration`;
+  await flagService.disable(flagName);
+  logger.warn({ flagName, serviceName }, 'Kill switch activated — circuit breaker OPEN');
+  await alertService.notify(`Kill switch activated for ${serviceName}`);
+});
+```
+
+### Server-Side vs Client-Side Evaluation
+
+**Server-side** (default): flag evaluated on the backend. Client never sees flag logic. Use for: feature gating, percentage rollouts, kill switches.
+
+**Client-side**: flag config sent to client, evaluated locally. Lower latency, works offline. Use for: UI experiments, personalization. Risk: flag logic visible to users (don't use for security controls).
+
+### Flag Auditing
+
+Log every flag state change: who changed it, when, old value, new value. Flag changes are auditable events — treat them like configuration changes to production.
+
+### Flag Dependencies
+
+Document when flags depend on each other. Example: `release.invoicing.pdf-export` depends on `ops.pdf-service.integration`. If the dependency flag is off, the dependent flag must also be off. Validate dependencies in flag evaluation.
 
 ---
 

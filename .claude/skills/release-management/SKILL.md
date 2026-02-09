@@ -5,7 +5,7 @@ description: "Release management with automated SemVer, changelog generation, re
 
 # Release Management
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -35,7 +35,7 @@ Version bump derived automatically from conventional commits since last tag. Too
 
 ### SemVer Workflow
 
-Merge to main → CI verifies (see `quality-gates.md`) → tool analyzes commits → bumps version in package.json → generates CHANGELOG.md → creates git tag → creates GitHub Release with release notes.
+Merge to main → CI verifies (see `quality-gates/SKILL.md`) → tool analyzes commits → bumps version in package.json → generates CHANGELOG.md → creates git tag → creates GitHub Release with release notes.
 
 ### Risk Assessment (for MAJOR bumps)
 
@@ -273,6 +273,31 @@ Hotfix = critical production fix that can't wait for next release.
 **Workflow**: branch from production tag → fix → PR with accelerated review (1 reviewer minimum) → merge and deploy → cherry-pick to main.
 
 A hotfix is a PATCH version. Generates a CHANGELOG entry and a dedicated release. Hotfix release notes always include: what broke, impact, what was fixed, who is affected.
+
+---
+
+## Multi-Service Release Coordination
+
+When a release spans multiple services:
+
+1. **Identify dependencies**: which services must deploy in which order?
+2. **Schema first**: deploy backward-compatible schema changes before code that uses them
+3. **Feature flags**: deploy all services with the feature behind a flag, then enable the flag
+4. **Smoke test between deploys**: verify each service is healthy before deploying the next
+
+Document the deploy order in the release ticket. For complex multi-service releases, assign a release coordinator.
+
+### Release Train Cadence
+
+For teams with frequent releases:
+
+| Cadence | When to Use | How it Works |
+|---------|-------------|--------------|
+| **Continuous** | Mature CI/CD, high test confidence | Every merge to main deploys automatically |
+| **Weekly train** | Multiple teams, moderate confidence | Train departs every Tuesday — features merged by Monday EOD are included |
+| **Sprint-aligned** | Regulated environments, lower automation | Release at end of each sprint with explicit release notes |
+
+Start with weekly trains, graduate to continuous as confidence grows.
 
 ---
 

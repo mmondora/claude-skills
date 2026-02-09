@@ -5,7 +5,7 @@ description: "Distributed caching and full-text search patterns. Cache-aside, wr
 
 # Caching & Search
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -66,8 +66,10 @@ async function getCachedInvoice(tenantId: string, invoiceId: string): Promise<In
 async function invalidateInvoiceCache(tenantId: string, invoiceId: string): Promise<void> {
   await redis.del(`app:v1:invoice:${tenantId}:${invoiceId}`);
   // Also invalidate list caches for this tenant
-  const listKeys = await redis.keys(`app:v1:invoices:${tenantId}:list:*`);
-  if (listKeys.length) await redis.del(listKeys);
+  // NEVER use redis.keys() in production — it blocks the entire Redis instance
+  for await (const key of redis.scanIterator({ MATCH: `app:v1:invoices:${tenantId}:list:*`, COUNT: 100 })) {
+    await redis.del(key);
+  }
 }
 ```
 
@@ -96,6 +98,60 @@ async function warmCache(): Promise<void> {
   logger.info({ tenantsWarmed: activeTenants.length }, 'Cache warming complete');
 }
 ```
+
+### Cache Stampede Prevention
+
+When a popular cache key expires, many concurrent requests hit the database simultaneously (thundering herd). Use the singleflight pattern:
+
+```typescript
+import { Mutex } from 'async-mutex';
+
+const locks = new Map<string, Mutex>();
+
+async function getCachedWithSingleflight<T>(
+  key: string,
+  fetchFn: () => Promise<T>,
+  ttl: number,
+): Promise<T> {
+  const cached = await redis.get(key);
+  if (cached) return JSON.parse(cached);
+
+  // Only one request fetches; others wait for the result
+  const mutex = locks.get(key) ?? new Mutex();
+  locks.set(key, mutex);
+
+  return mutex.runExclusive(async () => {
+    // Double-check after acquiring lock
+    const rechecked = await redis.get(key);
+    if (rechecked) return JSON.parse(rechecked);
+
+    const result = await fetchFn();
+    await redis.set(key, JSON.stringify(result), { EX: ttl });
+    locks.delete(key);
+    return result;
+  });
+}
+```
+
+Alternative: use stale-while-revalidate — serve stale data immediately while refreshing in the background.
+
+### Redis Cluster & Sentinel
+
+**Redis Sentinel**: for high availability (automatic failover). Suitable for single-master setups with < 100GB data.
+
+**Redis Cluster**: for horizontal scaling. Data sharded across nodes. Required when data exceeds single-node memory. Note: multi-key operations (MGET, pipeline) must target the same hash slot — design cache keys accordingly.
+
+For GCP: Memorystore for Redis supports both standard (Sentinel-like HA) and cluster modes.
+
+### CDN Invalidation Patterns
+
+For cached HTTP responses behind Cloud CDN:
+
+- **Tag-based invalidation**: tag responses by resource type, invalidate by tag on writes
+- **Surrogate keys**: `Surrogate-Key: tenant-{id} invoices` header, purge by key
+- **TTL + event-based**: short TTL (60s) for dynamic content, event-driven purge for immediate consistency
+
+Rule: CDN is for read-heavy, tolerance-for-staleness content (product pages, public APIs). Never CDN user-specific authenticated responses.
 
 ### Monitoring Cache Health
 

@@ -5,7 +5,7 @@ description: "Automated security testing in CI. SAST, DAST, dependency scanning,
 
 # Security Testing
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -115,6 +115,65 @@ describe('Tenant isolation', () => {
 
 Generate a test for every combination (role × action × resource) — tedious but essential. Use matrix testing or parameterized tests.
 
+### API Security Testing
+
+Test for common API vulnerabilities beyond tenant isolation:
+
+```typescript
+describe('API Security', () => {
+  it('prevents IDOR — cannot access invoice by guessing ID', async () => {
+    const otherInvoice = await createInvoiceForTenant('t_other');
+    const res = await request(app)
+      .get(`/api/v1/tenants/t_test/invoices/${otherInvoice.id}`)
+      .set('Authorization', `Bearer ${tokenForTenantA}`);
+    expect(res.status).toBe(404); // Not 403 — don't reveal existence
+  });
+
+  it('prevents mass assignment — ignores unpermitted fields', async () => {
+    const res = await request(app)
+      .post('/api/v1/tenants/t_test/invoices')
+      .set('Authorization', `Bearer ${editorToken}`)
+      .send({ ...validInvoice, role: 'admin', tenantId: 't_other' }); // attempt to escalate
+    expect(res.body.role).toBeUndefined();
+    expect(res.body.tenantId).toBe('t_test'); // Server-enforced, not from request
+  });
+
+  it('handles fuzzing — rejects malformed input gracefully', async () => {
+    const fuzzInputs = [null, '', 0, [], {}, '<script>alert(1)</script>', 'a'.repeat(100000)];
+    for (const input of fuzzInputs) {
+      const res = await request(app)
+        .post('/api/v1/tenants/t_test/invoices')
+        .set('Authorization', `Bearer ${editorToken}`)
+        .send({ amount: input });
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(res.status).toBeLessThan(500); // Client error, not server crash
+    }
+  });
+});
+```
+
+### Authenticated DAST
+
+Run DAST scans with authentication to test beyond the login page:
+
+```yaml
+# ZAP with authentication context
+- name: OWASP ZAP Authenticated Scan
+  uses: zaproxy/action-full-scan@v0.10
+  with:
+    target: 'https://staging.example.com'
+    cmd_options: '-z "-config auth.method=2 -config auth.bearer=${{ secrets.STAGING_TOKEN }}"'
+```
+
+### False Positive Triage
+
+Security scan false positives erode trust. Process:
+
+1. Review finding — is it a real vulnerability or a false positive?
+2. If false positive: add inline suppression with justification comment
+3. Track suppression count — rising count may indicate misconfigured rules
+4. Review suppressions quarterly — conditions may have changed
+
 ---
 
 ## Secret Detection
@@ -177,4 +236,4 @@ When generating security tests: tenant isolation test for every multi-tenant end
 
 ---
 
-*Internal references*: `testing-strategy.md`, `security.md`, `authn-authz.md`, `quality-gates.md`
+*Internal references*: `testing-strategy/SKILL.md`, `security-by-design/SKILL.md`, `authn-authz/SKILL.md`, `quality-gates/SKILL.md`

@@ -5,7 +5,7 @@ description: "Logging, metrics, and tracing with OpenTelemetry. Structured JSON 
 
 # Observability
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -42,6 +42,29 @@ Distributed tracing to follow a request across multiple services. Each service c
 **OpenTelemetry (OTel)** as the single standard for all three pillars. Vendor-agnostic: instrument code with OTel SDK, export to any backend (Cloud Trace, Jaeger, Datadog, Grafana). Auto-instrumentation for HTTP frameworks and databases (OTel plugins), manual instrumentation for significant business operations.
 
 ```typescript
+// otel-init.ts — MUST be imported before any other module
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter(),
+  metricReader: new PeriodicExportingMetricReader({
+    exporter: new OTLPMetricExporter(),
+  }),
+  instrumentations: [getNodeAutoInstrumentations()],
+  serviceName: process.env.SERVICE_NAME ?? 'unknown-service',
+});
+
+sdk.start();
+process.on('SIGTERM', () => sdk.shutdown());
+```
+
+Manual span creation for business operations:
+
+```typescript
 import { trace } from '@opentelemetry/api';
 const tracer = trace.getTracer('invoice-service');
 
@@ -71,6 +94,17 @@ async function createInvoice(data: CreateInvoiceInput) {
 **SLA (Service Level Agreement)**: a contractual commitment to customers, with consequences for breach. SLAs are always looser than SLOs (e.g., SLO = 99.9%, SLA = 99.5%). If you only alert on SLA breach, you've already lost — alert on SLO breach to fix before SLA is impacted.
 
 **Error budget**: the inverse of SLO. If SLO = 99.9% availability, error budget = 0.1% downtime per month (~43 minutes). When error budget is exhausted, stop releasing features and focus on reliability.
+
+### Error Budget Policy
+
+| Budget Consumed | Action |
+|----------------|--------|
+| < 50% | Normal development velocity, ship features |
+| 50-80% | Caution — no risky deployments, increase monitoring |
+| 80-100% | Feature freeze — reliability work only |
+| 100% (exhausted) | Full stop — all engineering on reliability until budget recovers |
+
+Error budget resets monthly. Track in SLO dashboard. Product and engineering jointly own the budget.
 
 ---
 
@@ -164,6 +198,46 @@ Cloud Logging for logs (integrated with Cloud Run). Cloud Monitoring for metrics
 
 ---
 
+## Production Debugging
+
+**Dynamic log levels**: change log level at runtime without redeployment. Implement via environment variable or config endpoint (protected, admin-only). Useful for increasing verbosity during incident investigation.
+
+```typescript
+// Dynamic log level via admin endpoint
+app.post('/admin/log-level', requireRole('admin'), (req, res) => {
+  const { level } = req.body; // 'debug' | 'info' | 'warn' | 'error'
+  logger.level = level;
+  res.json({ level: logger.level, expiresIn: '30m' });
+  // Auto-revert after 30 minutes to prevent debug log floods
+  setTimeout(() => { logger.level = 'info'; }, 30 * 60 * 1000);
+});
+```
+
+**Cardinality management**: high-cardinality labels (user IDs, request IDs) in metrics cause storage explosion. Use labels with bounded values (HTTP method, status code, endpoint path template). For user-level analysis, use traces not metrics.
+
+### Dashboard Design
+
+Follow RED/USE methodology:
+
+- **RED** (for request-driven services): Rate, Errors, Duration — one row per service
+- **USE** (for resources): Utilization, Saturation, Errors — one row per resource (CPU, memory, connections)
+
+Each dashboard answers one question. Service overview dashboard: "Is the service healthy right now?" SLO dashboard: "Are we burning error budget too fast?" Dependency dashboard: "Are our dependencies healthy?"
+
+### Resilience Patterns Reference
+
+Observability must cover resilience mechanisms:
+
+| Pattern | What to Monitor | Alert On |
+|---------|----------------|----------|
+| Circuit breaker | State transitions (closed→open→half-open) | Stays OPEN > 5min |
+| Retry | Retry count per operation | Retry rate > 20% |
+| Bulkhead | Pool utilization per partition | Pool exhaustion |
+| Timeout | Timeout rate per dependency | Timeout rate > 5% |
+| Graceful degradation | Fallback activation count | Fallback active > 10min |
+
+---
+
 ## Anti-Patterns
 
 - **"We'll add monitoring later"**: if it's not observable at launch, incidents will be diagnosed blind
@@ -180,4 +254,4 @@ When generating services: include OpenTelemetry setup in the entrypoint, structu
 
 ---
 
-*Internal references*: `production-readiness.md`, `security.md`, `cicd.md`
+*Internal references*: `production-readiness-review/SKILL.md`, `security-by-design/SKILL.md`, `cicd-pipeline/SKILL.md`

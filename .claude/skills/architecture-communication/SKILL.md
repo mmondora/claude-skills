@@ -5,7 +5,7 @@ description: "Communicating architectural decisions to stakeholders. Architectur
 
 # Architecture Communication
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -79,7 +79,7 @@ For each service or capability, maintain living documentation:
 #### 5. Data Ownership & Lifecycle
 - System of record per entity
 - Projection patterns (CQRS, read models)
-- Retention and deletion policy (link to `compliance.md`)
+- Retention and deletion policy (link to `compliance-privacy/SKILL.md`)
 
 #### 6. NFR Targets
 - Availability target, latency target, throughput assumptions
@@ -87,7 +87,7 @@ For each service or capability, maintain living documentation:
 - Resilience strategy
 
 #### 7. Security & Compliance
-- AuthN/AuthZ model (link to `authn-authz.md`)
+- AuthN/AuthZ model (link to `authn-authz/SKILL.md`)
 - Data classification (PII fields identified)
 - Audit logging scope
 
@@ -156,10 +156,35 @@ invoices. Target: 1,000 active businesses within 6 months of launch.
 
 ---
 
+## Async Decision-Making
+
+Not every decision needs a meeting. For decisions where:
+- All context is available in writing (ADR is complete)
+- No significant disagreement expected
+- Time zones make synchronous meetings impractical
+
+Use **async approval**: circulate ADR → reviewers comment within 2 business days → silence = consent → ADR merged as accepted.
+
+Reserve synchronous meetings for: contested decisions, complex trade-offs requiring discussion, decisions with significant organizational impact.
+
+### RFC Process
+
+For cross-team proposals that affect multiple services or teams:
+
+1. **Author** writes RFC in `docs/rfcs/NNNN-title.md` with: problem statement, proposed solution, alternatives, impact analysis
+2. **Review period**: 1 week for comments (async, in PR)
+3. **Discussion meeting**: only if unresolved concerns remain (30 min max)
+4. **Decision**: recorded in the RFC document with rationale
+5. **Implementation**: RFC links to ADRs and tickets for execution
+
+RFC is heavier than ADR — use only for cross-cutting concerns (shared infrastructure, company-wide conventions, platform changes).
+
+---
+
 ## For Claude Code
 
 When generating documentation for communication: adapt detail level to audience, use C4 diagrams at appropriate level, for ADRs always include "impact" section with team/cost/timeline impact. Never generate documentation requiring tribal knowledge to understand. When creating architecture docs, follow the overview.md structure above with all 8 sections.
 
 ---
 
-*Internal references*: `adr.md`, `diagrams.md`, `technical-docs.md`, `production-readiness.md`
+*Internal references*: `architecture-decision-records/SKILL.md`, `diagrams/SKILL.md`, `technical-documentation/SKILL.md`, `production-readiness-review/SKILL.md`

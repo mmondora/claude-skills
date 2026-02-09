@@ -5,7 +5,7 @@ description: "Formal quality gates that block releases. Tests, static quality, s
 
 # Quality Gates
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -68,7 +68,7 @@ Autoformat policy: CI may auto-format and commit, or fail if diff exists — con
 | Dependency audit — High | zero or exception approved | Yes |
 | Container scan — Critical | zero findings | Yes (deploy gate) |
 
-Exception process: a High finding may be accepted with a documented exception (justification, compensating controls, expiry date, owner). See `security-testing.md`.
+Exception process: a High finding may be accepted with a documented exception (justification, compensating controls, expiry date, owner). See `security-testing/SKILL.md`.
 
 ### 4. Performance Gate
 
@@ -95,6 +95,23 @@ Performance tests run on release candidates, not on every PR (too slow).
 | Release notes draft | exists for release events | Yes (release gate) |
 | ADR | required for architectural changes | Yes (PR gate) |
 | CHANGELOG | updated for notable changes | Warning |
+
+### 7. Accessibility Gate
+
+| Check | Threshold | Blocking |
+|-------|-----------|----------|
+| axe-core automated scan | zero critical violations | Yes (PR gate) |
+| Color contrast ratio | WCAG AA (4.5:1 for normal text) | Warning |
+| Keyboard navigation | all interactive elements reachable | Yes (release gate) |
+
+Accessibility is not optional — it's a legal requirement in many jurisdictions (ADA, EAA).
+
+### 8. Cost Gate
+
+| Check | Threshold | Blocking |
+|-------|-----------|----------|
+| Infracost estimate | < budget threshold per service | Warning |
+| New always-on resources | Requires ADR with cost justification | Yes |
 
 ---
 
@@ -170,6 +187,28 @@ gates:
 - **Manual override without audit trail**: if a gate is bypassed, who bypassed it and why must be recorded
 - **Too many warnings, never fixed**: warnings that accumulate become noise — set a threshold and enforce
 
+### Gate Bypass Process
+
+Gates can be bypassed only with explicit approval and documentation:
+
+1. Bypass requested with justification (PR comment or ticket)
+2. Approved by tech lead + security lead (for security gates)
+3. Time-boxed: bypass expires in N days (max 14 days)
+4. Tracked: all bypasses logged and reviewed in team retro
+5. No permanent bypasses — either fix the issue or adjust the gate threshold with an ADR
+
+### Technical Debt Tracking
+
+Convention for marking intentional technical debt in code:
+
+```typescript
+// TECH-DEBT: [ticket-id] — [description of what and why]
+// Example:
+// TECH-DEBT: PROJ-456 — Using string comparison for money, migrate to Money value object
+```
+
+CI scans for `TECH-DEBT:` comments and reports count in quality gate output. Track trend — increasing count without resolution is a signal.
+
 ---
 
 ## For Claude Code
@@ -178,4 +217,4 @@ When generating CI pipelines: include quality gates as explicit steps with clear
 
 ---
 
-*Internal references*: `cicd.md`, `testing-strategy.md`, `security-testing.md`, `release.md`
+*Internal references*: `cicd-pipeline/SKILL.md`, `testing-strategy/SKILL.md`, `security-testing/SKILL.md`, `release-management/SKILL.md`

@@ -5,7 +5,7 @@ description: "GDPR compliance and privacy as architectural constraints. Data min
 
 # Compliance & Privacy
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -102,6 +102,42 @@ Trigger for this checklist: new data fields/entities, new tracking/analytics, ne
 For EU clients: data must reside in EU (region `europe-west` on GCP). Verify all used services (Firestore, Cloud SQL, Pub/Sub, Cloud Functions) are configured in EU regions.
 
 Watch out for global services: some GCP services are multi-region by default (Cloud Storage multi-region, BigQuery US). Configure location explicitly.
+
+### Cross-Border Data Transfers
+
+For non-EU data processing: Standard Contractual Clauses (SCCs) required for data transfers outside EU/EEA. Verify cloud provider sub-processors and data transfer mechanisms. Document transfers in Records of Processing Activities (ROPA).
+
+---
+
+## Other Regulations
+
+**CCPA** (California): similar to GDPR but with opt-out model (vs opt-in). If serving US users, implement "Do Not Sell My Personal Information" link. CCPA applies to businesses with >$25M revenue or >50K consumers.
+
+**LGPD** (Brazil): closely modeled on GDPR. Requires Data Protection Officer (DPO) and consent basis. If expanding to Brazil, existing GDPR infrastructure covers most requirements.
+
+**Principle**: design for GDPR compliance first (most restrictive). Other regulations are mostly subsets. Record regulation-specific requirements in ADR when entering new markets.
+
+### DPIA (Data Protection Impact Assessment)
+
+Required for high-risk processing: automated decision-making affecting individuals, large-scale processing of sensitive data, systematic monitoring. Conduct before implementation, document in `docs/compliance/dpia-<feature>.md`.
+
+### Consent Management
+
+Track consent state per user per purpose with timestamp and version:
+
+```typescript
+interface ConsentRecord {
+  userId: string;
+  tenantId: string;
+  purpose: 'marketing' | 'analytics' | 'personalization';
+  granted: boolean;
+  timestamp: string; // ISO-8601
+  policyVersion: string; // version of privacy policy at consent time
+  channel: 'web' | 'ios' | 'api'; // where consent was collected
+}
+```
+
+Consent withdrawal must be as easy as granting consent (GDPR Art. 7). Never pre-check consent boxes.
 
 ---
 
@@ -217,8 +253,8 @@ For audits and customer assurance, maintain a structured evidence pack:
 
 ## For Claude Code
 
-When generating code handling PII: document the legal basis in a comment, include masking in logs, generate endpoints for data export and data deletion, verify data residency in cloud configuration. Include tenant_id in every multi-tenant database query. When preparing releases for regulated customers, generate evidence pack structure and INDEX.md. Include compliance assessment checklist in PRR (see `production-readiness.md`).
+When generating code handling PII: document the legal basis in a comment, include masking in logs, generate endpoints for data export and data deletion, verify data residency in cloud configuration. Include tenant_id in every multi-tenant database query. When preparing releases for regulated customers, generate evidence pack structure and INDEX.md. Include compliance assessment checklist in PRR (see `production-readiness-review/SKILL.md`).
 
 ---
 
-*Internal references*: `security.md`, `authn-authz.md`, `data-modeling.md`, `production-readiness.md`
+*Internal references*: `security-by-design/SKILL.md`, `authn-authz/SKILL.md`, `data-modeling/SKILL.md`, `production-readiness-review/SKILL.md`

@@ -5,7 +5,7 @@ description: "Cloud cost management as an architectural discipline. Unit economi
 
 # FinOps
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -54,6 +54,65 @@ Caution: free tier limits change. Always verify the official GCP pricing page.
 **Lifecycle policies**: automatically delete logs > 30 days, container artifacts > 90 days, snapshots > 60 days.
 
 **Serverless-first**: prefer Cloud Run over GKE, Cloud Functions over VMs, Firestore over Cloud SQL, when the workload permits. Pay-per-use scales better economically.
+
+### Hidden Costs
+
+Costs often missed in initial estimates:
+
+| Hidden Cost | Typical Impact | Mitigation |
+|-------------|---------------|------------|
+| **Egress traffic** | $0.12/GB inter-region, $0.08/GB to internet | Keep services in same region, use CDN |
+| **Observability** | Cloud Logging/Monitoring can exceed app costs | Set log exclusion filters, sample traces |
+| **NAT Gateway** | $0.045/hr + $0.045/GB processed | Use serverless (Cloud Run) to avoid NAT |
+| **IP addresses** | Static IPs cost when unused | Release unused IPs, use shared LB |
+| **Cross-zone traffic** | Often invisible, adds up at scale | Pin to single zone for non-HA workloads |
+
+### Cost-per-Tenant Attribution
+
+For multi-tenant SaaS, track cost per tenant:
+
+```typescript
+// Tag resources and logs with tenant ID for cost allocation
+const costLabels = {
+  'tenant-id': context.tenantId,
+  'feature': 'invoicing',
+  'environment': process.env.NODE_ENV,
+};
+```
+
+Use BigQuery billing export + tenant labels to calculate per-tenant unit economics. Essential for pricing decisions and identifying expensive tenants.
+
+### CUD vs SUD
+
+| Commitment | Discount | Lock-in | Use When |
+|-----------|---------|---------|----------|
+| **Sustained Use Discount (SUD)** | Up to 30% | None (automatic) | Default — applied automatically for sustained usage |
+| **Committed Use Discount (CUD)** | Up to 57% | 1 or 3 years | Predictable, stable workloads after 3+ months of data |
+
+Rule: never commit before you have 3 months of consumption data. Start with SUDs (free), graduate to CUDs when patterns are clear.
+
+### Infracost in CI
+
+Estimate cost impact of infrastructure changes before merge:
+
+```yaml
+# .github/workflows/infracost.yml
+- name: Infracost
+  uses: infracost/actions/setup@v3
+  with:
+    api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+- name: Generate cost diff
+  run: |
+    infracost diff --path infra/ \
+      --format json --out-file /tmp/infracost.json
+
+- name: Post PR comment
+  uses: infracost/actions/comment@v1
+  with:
+    path: /tmp/infracost.json
+    behavior: update
+```
 
 ---
 

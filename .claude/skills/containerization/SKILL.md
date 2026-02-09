@@ -5,7 +5,7 @@ description: "Docker best practices for cloud-native applications. Multi-stage b
 
 # Containerization
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -30,9 +30,9 @@ RUN npm run build
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+COPY --from=builder /app/package*.json ./
+RUN npm ci --omit=dev && rm -rf ~/.npm
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
 RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup
 USER appuser
 EXPOSE 3000
@@ -80,6 +80,74 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 ```
 
 Note: Cloud Run manages its own health checks via startup/liveness probes — `HEALTHCHECK` is useful for Docker Compose and standalone Docker deployments.
+
+### BuildKit Cache Mounts
+
+Accelerate builds by caching package manager downloads across builds:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY . .
+RUN npm run build
+```
+
+BuildKit cache mounts persist across builds on the same machine — significantly faster CI builds.
+
+### Container Signing
+
+Sign container images to verify provenance in production:
+
+```bash
+# Sign with cosign (keyless, uses OIDC identity)
+cosign sign --yes ${REGISTRY}/${IMAGE}:${TAG}
+
+# Verify before deploy
+cosign verify ${REGISTRY}/${IMAGE}:${TAG}
+```
+
+Enforce signature verification in deployment pipeline — reject unsigned images.
+
+### Runtime Security
+
+```dockerfile
+# Read-only root filesystem
+# In Cloud Run: --args="--read-only"
+# In Docker: docker run --read-only --tmpfs /tmp
+
+# Drop all capabilities, add only what's needed
+# In Kubernetes:
+# securityContext:
+#   readOnlyRootFilesystem: true
+#   runAsNonRoot: true
+#   allowPrivilegeEscalation: false
+#   capabilities:
+#     drop: ["ALL"]
+```
+
+### Startup Probe Tuning
+
+Cloud Run startup probe determines when a container is ready to receive traffic:
+
+```yaml
+# Cloud Run service.yaml
+spec:
+  template:
+    spec:
+      containers:
+        - startupProbe:
+            httpGet:
+              path: /health
+            initialDelaySeconds: 0
+            periodSeconds: 2
+            failureThreshold: 15  # 30s total startup budget
+            timeoutSeconds: 2
+```
+
+For Node.js services: pre-warm connections (DB pool, Redis) in startup before returning healthy.
 
 ---
 
@@ -182,6 +250,46 @@ docker buildx build \
 **Cloud Run** as default. Configuration: concurrency (requests per instance), min/max instances, CPU allocation (always-on vs request-only), memory limits, startup/liveness probes.
 
 **GKE** only when needed: stateful workloads, GPU, advanced scheduling, service mesh. GKE complexity is a cost — justify in ADR.
+
+---
+
+## Developer Experience
+
+### Dev Containers
+
+Use `.devcontainer/devcontainer.json` for consistent development environments:
+
+```json
+{
+  "name": "Invoice API",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "postCreateCommand": "npm ci",
+  "forwardPorts": [3000, 8080, 8085]
+}
+```
+
+### Docker Compose Watch
+
+For hot-reload without volume mounts (better performance on macOS):
+
+```yaml
+# docker-compose.yml
+services:
+  api:
+    build: .
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: rebuild
+          path: ./package.json
+```
+
+Run with `docker compose watch` — file changes sync automatically.
 
 ---
 

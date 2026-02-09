@@ -5,7 +5,7 @@ description: "Documentation as a living artifact. README structure, architecture
 
 # Technical Documentation
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -194,6 +194,45 @@ For new team members. Covers: business context (what the product does), high-lev
 - [ ] No stale links (internal or external)
 - [ ] Sensitive information (credentials, internal URLs) not present
 - [ ] Target audience is clear (developer, ops, product)
+
+---
+
+## Docs Testing
+
+Automate documentation quality checks in CI:
+
+### Link Checking
+
+```yaml
+# In CI — check for broken links
+- name: Check documentation links
+  uses: lycheeverse/lychee-action@v1
+  with:
+    args: --verbose --no-progress '**/*.md'
+    fail: true
+```
+
+### Docs Linting
+
+Use markdownlint for consistent formatting:
+
+```yaml
+- name: Lint markdown
+  uses: DavidAnson/markdownlint-cli2-action@v14
+  with:
+    globs: 'docs/**/*.md'
+```
+
+### Hosting Options
+
+| Option | Best For | Cost |
+|--------|----------|------|
+| GitHub Pages | Open source, simple docs | Free |
+| Docusaurus | Developer docs with versioning | Self-hosted |
+| Backstage | Internal developer portal | Self-hosted |
+| Notion/Confluence | Non-technical stakeholders | Paid |
+
+Rule: developer docs live in the repo (docs-as-code). Business/product docs may live in Notion/Confluence — but link from the repo README.
 
 ---
 

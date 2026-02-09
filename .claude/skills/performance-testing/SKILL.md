@@ -5,7 +5,7 @@ description: "Performance testing with k6 for SLO validation. Load, stress, soak
 
 # Performance Testing
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -123,6 +123,88 @@ export default function () {
 ## SLO Validation
 
 Performance tests validate defined SLOs: availability (99.9%), latency (p95 < 500ms, p99 < 1000ms for standard APIs), throughput (N req/s per service), error rate (< 0.1% under normal load). Tests fail if SLOs are not met. This is a CI gate for production releases.
+
+---
+
+## Database Performance Profiling
+
+### EXPLAIN ANALYZE
+
+Profile slow queries directly:
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+SELECT * FROM invoices
+WHERE tenant_id = 't_abc' AND status = 'sent'
+ORDER BY created_at DESC
+LIMIT 20;
+```
+
+Look for: sequential scans on large tables (missing index), high buffer reads (cold cache), nested loops on large result sets.
+
+### pg_stat_statements
+
+Enable for production query profiling:
+
+```sql
+-- Top 10 slowest queries by mean time
+SELECT query, calls, mean_exec_time, total_exec_time
+FROM pg_stat_statements
+ORDER BY mean_exec_time DESC
+LIMIT 10;
+```
+
+Review weekly. Any query > 100ms mean time needs investigation.
+
+### Connection Pool Tuning
+
+| Parameter | Guideline | Measurement |
+|-----------|-----------|-------------|
+| Pool size per instance | Start with 10, measure | `pg_stat_activity` active connections |
+| Idle timeout | 30s for serverless, 300s for always-on | Connection churn rate |
+| Statement timeout | 5s for API, 30s for batch | Query duration percentiles |
+| Total max connections | instances × pool_size < pg max_connections | `max_connections` setting |
+
+---
+
+## Event-Driven Workload Testing
+
+For Pub/Sub consumers: measure processing throughput, not just HTTP latency.
+
+```javascript
+// k6 test publishing events to Pub/Sub
+import { check } from 'k6';
+import http from 'k6/http';
+
+export const options = {
+  scenarios: {
+    event_burst: {
+      executor: 'ramping-arrival-rate',
+      startRate: 10,
+      timeUnit: '1s',
+      preAllocatedVUs: 50,
+      stages: [
+        { target: 100, duration: '1m' },   // Ramp to 100 events/s
+        { target: 100, duration: '5m' },   // Sustain
+        { target: 0, duration: '30s' },
+      ],
+    },
+  },
+  thresholds: {
+    'http_req_duration{scenario:event_burst}': ['p(95)<200'],
+  },
+};
+
+export default function () {
+  const res = http.post(`${BASE_URL}/api/v1/events/test`, JSON.stringify({
+    type: 'invoicing.invoice.created',
+    data: { invoiceId: `inv_${Date.now()}`, amount: 100 },
+  }), { headers: { 'Content-Type': 'application/json' } });
+  check(res, { 'accepted': (r) => r.status === 202 });
+}
+```
+
+Measure consumer lag (unacked messages in subscription) alongside publish rate. If lag grows, the consumer can't keep up — scale or optimize.
 
 ---
 

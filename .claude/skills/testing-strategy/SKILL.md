@@ -5,7 +5,7 @@ description: "Testing strategy that produces real confidence. Test pyramid, cove
 
 # Testing Strategy
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -138,6 +138,61 @@ A flaky test (passes/fails non-deterministically) is a broken test.
 **Quarantine rules**: quarantined tests run in a separate non-blocking CI job. Quarantined tests count as tech debt. More than 5 quarantined tests triggers a team discussion. A test quarantined for > 2 sprints is deleted.
 
 **Common causes**: time-dependent logic, shared state between tests, race conditions in async code, external service dependencies. Fix the root cause, not the symptom (don't add `sleep()`).
+
+---
+
+## Mutation Testing
+
+Mutation testing verifies that your tests actually catch bugs by introducing small code changes (mutations) and checking if tests fail.
+
+**Tool**: Stryker Mutator for TypeScript.
+
+```bash
+# Install and run Stryker
+npx stryker init  # generates stryker.config.json
+npx stryker run
+```
+
+**Mutation score** = killed mutants / total mutants. Target: > 70% on domain logic. Run mutation testing on domain layer only (not infrastructure or UI) — too slow for full codebase.
+
+Use mutation testing to find: tests that always pass regardless of code changes, missing edge case coverage, assertions that are too weak (`toBeTruthy()` instead of specific value checks).
+
+---
+
+## Accessibility Testing
+
+Automated accessibility checks catch ~30% of issues. Integrate in CI:
+
+```typescript
+// In Playwright E2E tests
+import AxeBuilder from '@axe-core/playwright';
+
+test('invoice page is accessible', async ({ page }) => {
+  await page.goto('/invoices');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+```
+
+Run axe-core in CI on every page/component. Manual testing still needed for: keyboard navigation flows, screen reader experience, focus management.
+
+---
+
+## Visual Regression Testing
+
+Catch unintended UI changes by comparing screenshots:
+
+**Tools**: Playwright visual comparisons, Percy, Chromatic (for Storybook).
+
+```typescript
+// Playwright visual comparison
+test('invoice form matches baseline', async ({ page }) => {
+  await page.goto('/invoices/new');
+  await expect(page).toHaveScreenshot('invoice-form.png', { maxDiffPixelRatio: 0.01 });
+});
+```
+
+Run on: component library changes, CSS refactors, dependency updates affecting UI. Not on every PR (too noisy) — trigger on relevant path changes.
 
 ---
 

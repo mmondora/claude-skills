@@ -5,7 +5,7 @@ description: "CI/CD pipeline design with GitHub Actions. Pipeline stages, cachin
 
 # CI/CD Pipeline
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -52,7 +52,7 @@ All CI stages above, plus:
 
 | # | Stage | What |
 |---|-------|------|
-| 9 | **Container Build** | Multi-stage Docker build (see `containers.md`) |
+| 9 | **Container Build** | Multi-stage Docker build (see `containerization/SKILL.md`) |
 | 10 | **Artifact Push** | Push to Artifact Registry with provenance + SBOM |
 | 11 | **Staging Deploy** | Automatic deploy to staging environment |
 | 12 | **Smoke Test** | Health check + 3 critical user flows in staging |
@@ -192,41 +192,57 @@ Use matrix builds for: testing across Node.js LTS versions, multi-platform build
 
 **Caching**: `actions/cache` for node_modules (key based on package-lock.json hash). **Secrets**: GitHub Secrets for sensitive values. Workload Identity Federation for GCP auth (no service account key JSON).
 
-### Matrix Build Example
-
-```yaml
-# Test across Node.js versions and OS
-jobs:
-  test:
-    strategy:
-      matrix:
-        node-version: [20, 22]
-        os: [ubuntu-latest]
-        include:
-          - node-version: 22
-            os: macos-latest  # Also test on macOS for native deps
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm ci
-      - run: npm test
-```
-
-Use matrix builds for: multiple Node.js versions (LTS + current), multi-platform testing when native dependencies exist, or testing against multiple database versions.
-
 ### CI Evidence Extraction
 
-CI must produce artifacts usable for compliance evidence (see `compliance.md`):
+CI must produce artifacts usable for compliance evidence (see `compliance-privacy/SKILL.md`):
 
 - Test reports (JUnit XML or JSON)
 - Coverage reports (lcov, JSON)
 - Security scan results (SARIF, JSON)
 - SBOM (CycloneDX/SPDX)
 - Container image signatures and provenance
+
+### Monorepo CI Strategies
+
+For monorepos with multiple services:
+
+- **Path filtering**: only run CI for changed paths (`paths:` filter in GitHub Actions)
+- **Affected detection**: tools like Nx or Turborepo detect which packages are affected by a change
+- **Shared pipeline, parameterized**: one reusable workflow called with service-specific inputs
+
+```yaml
+# .github/workflows/ci.yml — path-filtered
+on:
+  pull_request:
+    paths:
+      - 'services/invoice-api/**'
+      - 'packages/shared/**'  # shared libs affect all consumers
+jobs:
+  ci:
+    uses: ./.github/workflows/service-ci.yml
+    with:
+      service: invoice-api
+      working-directory: services/invoice-api
+```
+
+### Artifact Promotion
+
+Never rebuild for production — promote the same artifact through environments:
+
+```
+Build → push artifact (SHA-tagged) → deploy to staging → test → promote to production (same SHA)
+```
+
+Tag with both SHA and semver: `image:abc123` (immutable) and `image:v1.4.0` (human-readable).
+
+### Caching Strategies
+
+| What to Cache | Key | Restore Key |
+|---------------|-----|-------------|
+| npm dependencies | `npm-${{ hashFiles('package-lock.json') }}` | `npm-` |
+| Build output | `build-${{ github.sha }}` | — |
+| Docker layers | Built-in with BuildKit | — |
+| Terraform providers | `tf-${{ hashFiles('.terraform.lock.hcl') }}` | `tf-` |
 
 ---
 

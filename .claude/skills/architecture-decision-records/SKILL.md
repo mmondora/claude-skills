@@ -5,7 +5,7 @@ description: "Architecture Decision Records governance and format. ADR lifecycle
 
 # Architecture Decision Records (ADR)
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -114,7 +114,7 @@ Include: conditions that trigger rollback, steps, estimated effort.
 
 **ADR required BEFORE implementation** for high-impact changes. The review discussion happens before code is written — not after.
 
-**Cost impact is mandatory.** Every ADR must include estimated cost implications (infrastructure, development time, operational complexity). Reference `finops.md` for cost modeling.
+**Cost impact is mandatory.** Every ADR must include estimated cost implications (infrastructure, development time, operational complexity). Reference `finops/SKILL.md` for cost modeling.
 
 **Status lifecycle**: Proposed → Accepted → (optionally) Deprecated or Superseded. A superseded ADR links to its replacement. Deprecated ADRs explain why.
 
@@ -134,7 +134,7 @@ When an ADR is proposed:
    - **Compliance impact**: Compliance / Legal
    - **Cost impact > threshold**: Engineering Manager
 3. Reviewers have **2 business days** to review before the decisional meeting
-4. Decisional review meeting: 30 min max (see `architecture-comms.md`)
+4. Decisional review meeting: 30 min max (see `architecture-communication/SKILL.md`)
 5. ADR updated to "Accepted" with any discussion notes, merged
 
 ---
@@ -244,6 +244,29 @@ If Firestore proves insufficient before launch:
 - **ADR without guardrails**: if you can't test or observe whether the decision works, you can't know if it was right
 - **Orphan ADR**: an accepted ADR with no follow-up tickets means the decision exists on paper but not in code
 
+### ADR Granularity
+
+Not every technical choice needs an ADR. Use this heuristic:
+
+| Decision | ADR? | Why |
+|----------|------|-----|
+| Choice of database | Yes | Long-term impact, hard to reverse |
+| Choice of HTTP library | No | Easy to swap, low impact |
+| New event schema | Yes | Public contract, affects consumers |
+| Refactoring internal module | No | Internal, easily reversible |
+| Adding a new cloud service | Yes | Cost, operational, security impact |
+
+When in doubt: if the decision would be hard to reverse in 6 months, write an ADR.
+
+### Disagreement Escalation
+
+When reviewers disagree on an ADR:
+
+1. Author addresses concerns in writing (update ADR with counterpoints)
+2. If still unresolved: time-boxed meeting (30 min max) with named decision-maker
+3. Decision-maker decides — document the rationale including the dissenting view
+4. No consensus required — one clear decision-maker per ADR avoids paralysis
+
 ---
 
 ## For Claude Code
@@ -252,4 +275,4 @@ When an architectural decision is needed: generate ADR draft following the forma
 
 ---
 
-*Internal references*: `architecture-comms.md`, `diagrams.md`, `finops.md`, `compliance.md`
+*Internal references*: `architecture-communication/SKILL.md`, `diagrams/SKILL.md`, `finops/SKILL.md`, `compliance-privacy/SKILL.md`

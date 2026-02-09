@@ -5,7 +5,7 @@ description: "Production readiness GO/NO-GO framework. NFR checklist covering av
 
 # Production Readiness Review (PRR)
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-08
+> **Version**: 1.2.0 | **Last updated**: 2026-02-09
 
 ## Purpose
 
@@ -45,7 +45,7 @@ A structured GO / NO-GO decision framework for production deployments. Ensures n
 
 ### 3. Observability
 
-- [ ] Structured logging with correlation ID (see `observability.md`)
+- [ ] Structured logging with correlation ID (see `observability/SKILL.md`)
 - [ ] 4 golden signals metrics: request rate, error rate, latency, saturation
 - [ ] Distributed tracing enabled for critical paths
 - [ ] Dashboards exist and linked in runbook
@@ -62,10 +62,10 @@ A structured GO / NO-GO decision framework for production deployments. Ensures n
 
 ### 5. Security
 
-- [ ] Authentication and authorization enforced on all endpoints (see `authn-authz.md`)
+- [ ] Authentication and authorization enforced on all endpoints (see `authn-authz/SKILL.md`)
 - [ ] Tenant isolation verified with automated tests
 - [ ] Secrets management validated (no hardcoded credentials)
-- [ ] Security scanning passed: SAST, dependency scan, container scan (see `security-testing.md`)
+- [ ] Security scanning passed: SAST, dependency scan, container scan (see `security-testing/SKILL.md`)
 - [ ] Threat model updated (for high-impact services)
 - [ ] Least privilege: service accounts have minimum required permissions
 
@@ -75,17 +75,32 @@ A structured GO / NO-GO decision framework for production deployments. Ensures n
 - [ ] Audit trail for business-critical operations
 - [ ] Data retention policies defined and automated
 - [ ] Backup and restore tested
-- [ ] GDPR compliance verified (if handling EU data) — see `compliance.md`
+- [ ] GDPR compliance verified (if handling EU data) — see `compliance-privacy/SKILL.md`
 - [ ] Multi-tenant data isolation verified
 
 ### 7. Release Safety
 
-- [ ] Rollback strategy defined and tested (see `release.md`)
+- [ ] Rollback strategy defined and tested (see `release-management/SKILL.md`)
 - [ ] Database migrations are backward-compatible (additive only)
 - [ ] Feature flags for risky features (kill switch available)
 - [ ] Canary or blue-green deploy configured
 - [ ] Automatic rollback on SLO breach in first N minutes
 - [ ] Smoke tests in staging passed
+
+### 8. Verification & Testing
+
+- [ ] Load test executed at 2x expected peak (see `performance-testing/SKILL.md`)
+- [ ] Chaos experiment passed: service recovers from dependency failure
+- [ ] DNS configured and propagated (if new domain/subdomain)
+- [ ] TLS certificate valid and auto-renewing
+- [ ] CDN configured for static assets (if applicable)
+
+### 9. Cost Readiness
+
+- [ ] Monthly cost estimate documented (see `finops/SKILL.md`)
+- [ ] Budget alerts configured for the service
+- [ ] Autoscaling max-instances capped to prevent cost runaway
+- [ ] Non-prod environments configured to scale to zero
 
 ---
 
@@ -211,4 +226,4 @@ When preparing a service for production: generate PRR checklist populated with a
 
 ---
 
-*Internal references*: `observability.md`, `security.md`, `security-testing.md`, `compliance.md`, `release.md`, `cicd.md`
+*Internal references*: `observability/SKILL.md`, `security-by-design/SKILL.md`, `security-testing/SKILL.md`, `compliance-privacy/SKILL.md`, `release-management/SKILL.md`, `cicd-pipeline/SKILL.md`

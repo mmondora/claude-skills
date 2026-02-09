@@ -8,11 +8,14 @@ Not a boilerplate. Not a template. A system of conventions, patterns, and guardr
 
 ```
 claude-skills/
-  .claude/skills/             # 25 Claude Code skills (one per directory)
-  .githooks/pre-commit        # Auto-updates README.md on commit
-  scripts/install-skills.sh   # Installer script
-  scripts/generate-readme.sh  # Skills catalog → README.md
-  CLAUDE.md                   # Master configuration
+  .claude/skills/                        # 25 Claude Code skills (one per directory)
+  skills/                                # Symlink → .claude/skills/ (for easy browsing)
+  .githooks/pre-commit                   # Auto-updates README.md on commit
+  scripts/build-zip.sh                   # Builds versioned distribution zip
+  scripts/install-skills.sh              # Installs skills into a target project
+  scripts/generate-readme.sh             # Skills catalog → README.md
+  scripts/claude-skills-<version>.zip    # Distribution package
+  CLAUDE.md                              # Master configuration
 ```
 
 ## Skills Catalog (25 skills)

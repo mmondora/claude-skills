@@ -4,7 +4,7 @@ set -euo pipefail
 # ─────────────────────────────────────────────────────────────
 # install-skills.sh
 # Installs Claude Code skills into a target project.
-# Unpacks skills from claude-skills.zip into <target>/.claude/skills/,
+# Unpacks skills from scripts/claude-skills-<version>.zip into <target>/.claude/skills/,
 # patches/creates CLAUDE.md with skill references, sets up a
 # pre-commit hook that auto-updates README.md with the skills catalog.
 #
@@ -19,7 +19,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SKILLS_ZIP="${REPO_ROOT}/claude-skills.zip"
 
 # ── Colors ──
 RED='\033[0;31m'
@@ -28,6 +27,14 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
+
+# Find the latest versioned zip in scripts/
+SKILLS_ZIP="$(ls -t "${SCRIPT_DIR}"/claude-skills-*.zip 2>/dev/null | head -1 || true)"
+if [ -z "$SKILLS_ZIP" ]; then
+  echo -e "${RED}Error: no claude-skills-*.zip found in scripts/${NC}"
+  echo "Run ./scripts/build-zip.sh first."
+  exit 1
+fi
 
 # ── Parse arguments ──
 TARGET=""
@@ -50,7 +57,7 @@ for arg in "$@"; do
       echo "  --no-hooks   Skip pre-commit hook and README.md setup"
       echo "  --force      Overwrite existing skills without prompting"
       echo ""
-      echo "This script unpacks Claude Code skills from claude-skills.zip"
+      echo "This script unpacks Claude Code skills from scripts/claude-skills-<version>.zip"
       echo "into <target>/.claude/skills/, patches CLAUDE.md, and sets up"
       echo "a pre-commit hook that auto-updates README.md with the skills catalog."
       exit 0
@@ -78,16 +85,10 @@ TARGET="$(cd "$TARGET" 2>/dev/null && pwd)" || {
   exit 1
 }
 
-echo -e "${BOLD}claude-skills installer${NC}"
+ZIP_VERSION=$(basename "$SKILLS_ZIP" | sed 's/claude-skills-//;s/\.zip//')
+echo -e "${BOLD}claude-skills installer${NC} ${CYAN}v${ZIP_VERSION}${NC}"
 echo -e "${CYAN}Target:${NC} $TARGET"
 echo ""
-
-# ── Verify zip exists ──
-if [ ! -f "$SKILLS_ZIP" ]; then
-  echo -e "${RED}Error: claude-skills.zip not found at $SKILLS_ZIP${NC}"
-  echo "Run this script from the claude-skills repo root."
-  exit 1
-fi
 
 # ── Create target .claude/skills/ ──
 SKILLS_TARGET="${TARGET}/.claude/skills"

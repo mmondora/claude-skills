@@ -41,21 +41,24 @@ TARGET=""
 NO_PATCH=false
 NO_HOOKS=false
 FORCE=false
+INCLUDE_COMMUNITY=false
 
 for arg in "$@"; do
   case "$arg" in
     --no-patch) NO_PATCH=true ;;
     --no-hooks) NO_HOOKS=true ;;
     --force) FORCE=true ;;
+    --include-community) INCLUDE_COMMUNITY=true ;;
     --help|-h)
       echo -e "${BOLD}claude-skills installer${NC}"
       echo ""
-      echo "Usage: ./scripts/install-skills.sh <target-project-path> [--no-patch] [--no-hooks] [--force]"
+      echo "Usage: ./scripts/install-skills.sh <target-project-path> [--no-patch] [--no-hooks] [--force] [--include-community]"
       echo ""
       echo "Options:"
-      echo "  --no-patch   Skip CLAUDE.md patching"
-      echo "  --no-hooks   Skip pre-commit hook and README.md setup"
-      echo "  --force      Overwrite existing skills without prompting"
+      echo "  --no-patch            Skip CLAUDE.md patching"
+      echo "  --no-hooks            Skip pre-commit hook and README.md setup"
+      echo "  --force               Overwrite existing skills without prompting"
+      echo "  --include-community   Also install community skills from community/skills/"
       echo ""
       echo "This script unpacks Claude Code skills from scripts/claude-skills-<version>.zip"
       echo "into <target>/.claude/skills/, patches CLAUDE.md, and sets up"
@@ -319,6 +322,40 @@ READMEEOF
         echo -e "  ${GREEN}[generated]${NC} README.md skills catalog" || \
         echo -e "  ${YELLOW}[warning]${NC}   Could not auto-generate README catalog"
     fi
+  fi
+fi
+
+# ── Install community skills ──
+if [ "$INCLUDE_COMMUNITY" = true ]; then
+  COMMUNITY_DIR="${REPO_ROOT}/community/skills"
+  if [ -d "$COMMUNITY_DIR" ]; then
+    echo ""
+    echo -e "${CYAN}Installing community skills...${NC}"
+    COMMUNITY_INSTALLED=0
+    for source_dir in "$COMMUNITY_DIR"/*/; do
+      [ -d "$source_dir" ] || continue
+      source_name="$(basename "$source_dir")"
+      for skill_dir in "$source_dir"/*/; do
+        [ -d "$skill_dir" ] || continue
+        skill_name="$(basename "$skill_dir")"
+        [[ "$skill_name" == .* ]] && continue
+        skill_target="${SKILLS_TARGET}/${skill_name}"
+        if [ -d "$skill_target" ] && [ "$FORCE" = false ]; then
+          continue  # Skip existing skills
+        fi
+        cp -r "${source_dir}/${skill_name}" "${SKILLS_TARGET}/"
+        COMMUNITY_INSTALLED=$((COMMUNITY_INSTALLED + 1))
+      done
+      # Also install single-skill sources (SKILL.md directly in source_dir)
+      if [ -f "${source_dir}/SKILL.md" ] && [ ! -d "${SKILLS_TARGET}/${source_name}" ]; then
+        mkdir -p "${SKILLS_TARGET}/${source_name}"
+        cp -r "${source_dir}"/* "${SKILLS_TARGET}/${source_name}/"
+        COMMUNITY_INSTALLED=$((COMMUNITY_INSTALLED + 1))
+      fi
+    done
+    echo -e "${GREEN}Installed ${COMMUNITY_INSTALLED} community skills${NC}"
+  else
+    echo -e "${YELLOW}No community skills found. Run community/download-community.sh first.${NC}"
   fi
 fi
 

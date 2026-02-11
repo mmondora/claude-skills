@@ -38,7 +38,7 @@ fi
 # ── Remove old versioned zips ──
 rm -f "${SCRIPT_DIR}"/claude-skills-*.zip
 
-# ── Build zip ──
+# ── Build curated zip ──
 ZIP_NAME="claude-skills-${VERSION}.zip"
 ZIP_PATH="${SCRIPT_DIR}/${ZIP_NAME}"
 
@@ -49,4 +49,20 @@ echo -e "${CYAN}Building ${BOLD}${ZIP_NAME}${NC}..."
 SKILL_COUNT=$(find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
 
 echo -e "${GREEN}Created ${ZIP_PATH}${NC}"
-echo -e "${GREEN}${SKILL_COUNT} skills, version ${VERSION}${NC}"
+echo -e "${GREEN}${SKILL_COUNT} curated skills, version ${VERSION}${NC}"
+
+# ── Build full zip (curated + community) ──
+COMMUNITY_DIR="${REPO_ROOT}/community"
+if [ -d "${COMMUNITY_DIR}/skills" ]; then
+  FULL_ZIP_NAME="claude-skills-${VERSION}-full.zip"
+  FULL_ZIP_PATH="${SCRIPT_DIR}/${FULL_ZIP_NAME}"
+
+  echo ""
+  echo -e "${CYAN}Building ${BOLD}${FULL_ZIP_NAME}${NC} (curated + community)..."
+
+  (cd "$REPO_ROOT" && zip -qr "$FULL_ZIP_PATH" .claude/skills/ community/)
+
+  COMMUNITY_COUNT=$(find "${COMMUNITY_DIR}/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+  echo -e "${GREEN}Created ${FULL_ZIP_PATH}${NC}"
+  echo -e "${GREEN}${SKILL_COUNT} curated + ${COMMUNITY_COUNT} community skills${NC}"
+fi

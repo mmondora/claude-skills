@@ -82,6 +82,32 @@ claude-skills/
 
 <!-- SKILLS_END -->
 
+## Community Skills (1,300+ skills)
+
+In addition to the 26 curated skills above, this repo includes **community-contributed
+skills** from the open-source ecosystem. These are kept in their original format in
+the `community/` directory.
+
+See [community/README.md](community/README.md) for the full catalog, installation
+instructions, and license information.
+
+### Highlights
+
+| Source | Skills | Focus | License |
+|--------|--------|-------|---------|
+| [obra/superpowers](https://github.com/obra/superpowers) | 14 | TDD, debugging, collaboration, planning | MIT |
+| [anthropics/skills](https://github.com/anthropics/skills) | 16 | Docs, design, dev tools (official) | Anthropic |
+| [trailofbits/skills](https://github.com/trailofbits/skills) | 52 | Security analysis, fuzzing, code auditing | CC-BY-SA-4.0 |
+| [jeffallan/claude-skills](https://github.com/jeffallan/claude-skills) | 66 | Full-stack dev, 30+ frameworks | MIT |
+| [K-Dense-AI/claude-scientific-skills](https://github.com/K-Dense-AI/claude-scientific-skills) | 149 | Bioinformatics, chemistry, ML | MIT |
+| [ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills) | 939 | Service automations (Slack, Airtable...) | No license |
+| + 14 more repos | ~64 | Various | See [LICENSES.md](community/LICENSES.md) |
+
+### Copyright
+
+Community skills are copyright their respective authors and distributed under their
+original licenses. See [community/LICENSES.md](community/LICENSES.md) for full details.
+
 ## Installation
 
 ### Quick Install
@@ -118,6 +144,19 @@ unzip claude-skills.zip -d /path/to/your/project/
 ```
 
 This creates `.claude/skills/<skill-name>/SKILL.md` for each skill.
+
+### Install Community Skills
+
+```bash
+# Install a single community skill
+cp -r community/skills/obra-superpowers/brainstorming /path/to/project/.claude/skills/
+
+# Install all skills from a source
+cp -r community/skills/obra-superpowers/* /path/to/project/.claude/skills/
+
+# Install curated + community skills via installer
+./scripts/install-skills.sh /path/to/project --include-community
+```
 
 ## How It Works
 

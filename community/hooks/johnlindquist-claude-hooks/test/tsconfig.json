@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "noImplicitAny": false,
+    "strict": false
+  },
+  "include": ["**/*.ts"],
+  "ts-node": {
+    "esm": true
+  }
+}

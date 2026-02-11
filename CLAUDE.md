@@ -168,6 +168,7 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Skill | Path | Covers |
 |-------|------|--------|
 | Architecture Decision Records | `architecture-decision-records/SKILL.md` | ADR governance, format, lifecycle, review process, filled example |
+| Prompt Architect | `prompt-architect/SKILL.md` | Prompt engineering frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density) |
 
 ### 02 — Cloud & Infrastructure
 | Skill | Path | Covers |

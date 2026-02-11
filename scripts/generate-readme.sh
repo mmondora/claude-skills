@@ -20,7 +20,7 @@ README="${REPO_ROOT}/README.md"
 # ── Category mapping (bash 3.2 compatible) ──
 get_category() {
   case "$1" in
-    architecture-decision-records)
+    architecture-decision-records|prompt-architect)
       echo "01	Foundations" ;;
     infrastructure-as-code|finops|containerization|observability)
       echo "02	Cloud & Infrastructure" ;;

@@ -1,6 +1,6 @@
 # claude-skills
 
-An operational knowledge system for [Claude Code](https://claude.ai/claude-code) — 25 skills that guide Claude in generating enterprise-grade software.
+An operational knowledge system for [Claude Code](https://claude.ai/claude-code) — 26 skills that guide Claude in generating enterprise-grade software.
 
 Not a boilerplate. Not a template. A system of conventions, patterns, and guardrails that Claude Code consults **before** writing code, infrastructure, tests, or documentation.
 
@@ -8,7 +8,7 @@ Not a boilerplate. Not a template. A system of conventions, patterns, and guardr
 
 ```
 claude-skills/
-  .claude/skills/                        # 25 Claude Code skills (one per directory)
+  .claude/skills/                        # 26 Claude Code skills (one per directory)
   skills/                                # Symlink → .claude/skills/ (for easy browsing)
   .githooks/pre-commit                   # Auto-updates README.md on commit
   scripts/build-zip.sh                   # Builds versioned distribution zip
@@ -18,7 +18,7 @@ claude-skills/
   CLAUDE.md                              # Master configuration
 ```
 
-## Skills Catalog (25 skills)
+## Skills Catalog (26 skills)
 
 <!-- SKILLS_START -->
 
@@ -26,6 +26,7 @@ claude-skills/
 | Skill | What it covers |
 |-------|----------------|
 | `architecture-decision-records` | Architecture Decision Records governance and format. ADR lifecycle, review process, when to write an ADR |
+| `prompt-architect` | Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). Provides framework recommendations, asks targeted questions, and structures prompts for maximum effectiveness |
 
 ### Cloud & Infrastructure
 | Skill | What it covers |
@@ -91,7 +92,7 @@ git clone <this-repo> claude-skills
 ```
 
 This does two things:
-1. Unpacks all 25 skills into `your-project/.claude/skills/`
+1. Unpacks all 26 skills into `your-project/.claude/skills/`
 2. Adds a skill reference table to `your-project/CLAUDE.md` (creates it if missing)
 
 ### Options

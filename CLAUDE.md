@@ -279,3 +279,38 @@ The skills themselves follow the principle of evolutionary coherence. Each skill
 
 *Last revision: 2026-02-08*
 *CLAUDE.md version: 1.1.0*
+
+<!-- claude-skills:begin -->
+## Installed Skills
+
+The following Claude Code skills are installed in `.claude/skills/`. Claude will auto-load them based on context, or you can invoke them with `/<skill-name>`.
+
+| Skill | Description |
+|-------|-------------|
+| `api-design` | API design conventions for REST and GraphQL. |
+| `architecture-communication` | Communicating architectural decisions to stakeholders. |
+| `architecture-decision-records` | Architecture Decision Records governance and format. |
+| `authn-authz` | Authentication and authorization patterns for multi-tenant applications. |
+| `caching-search` | Distributed caching and full-text search patterns. |
+| `cicd-pipeline` | CI/CD pipeline design with GitHub Actions. |
+| `compliance-privacy` | GDPR compliance and privacy as architectural constraints. |
+| `containerization` | Docker best practices for cloud-native applications. |
+| `data-modeling` | Schema design, multi-tenant data isolation, and migration management. |
+| `diagrams` | Architectural diagrams as code using Mermaid and C4 model. |
+| `event-driven-architecture` | Event-driven systems with CloudEvents and GCP Pub/Sub. |
+| `feature-management` | Feature flags, progressive rollout, A/B testing, and kill switches. |
+| `finops` | Cloud cost management as an architectural discipline. |
+| `incident-management` | Incident response process from detection to postmortem. |
+| `infrastructure-as-code` | Infrastructure as Code with Terraform and Pulumi. |
+| `observability` | Logging, metrics, and tracing with OpenTelemetry. |
+| `performance-testing` | Performance testing with k6 for SLO validation. |
+| `production-readiness-review` | Production readiness GO/NO-GO framework. |
+| `prompt-architect` | Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). |
+| `quality-gates` | Formal quality gates that block releases. |
+| `release-management` | Release management with automated SemVer, changelog generation, release notes, rollback strategies, and hotfix workflow. |
+| `security-by-design` | Security as a design property, not an added layer. |
+| `security-testing` | Automated security testing in CI. |
+| `technical-documentation` | Documentation as a living artifact. |
+| `testing-implementation` | Concrete test tooling and patterns for TypeScript and Swift. |
+| `testing-strategy` | Testing strategy that produces real confidence. |
+<!-- claude-skills:end -->

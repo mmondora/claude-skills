@@ -126,6 +126,7 @@ Skills:
 Skills:
 - `ios-gui-assessment/SKILL.md` — SwiftUI/UIKit audit, native controls, HIG, deprecated APIs, accessibility
 - `ios-app-audit/SKILL.md` — Full production audit for iOS apps, 10-area P0-P3 framework
+- `apple-compliance-audit/SKILL.md` — App Store Review Guidelines, privacy manifests, entitlements, HIG, submission readiness
 
 **When to load**: iOS app review, GUI audit, App Store submission readiness, mobile production audit.
 

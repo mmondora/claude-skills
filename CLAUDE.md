@@ -256,6 +256,7 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 |-------|------|--------|
 | iOS GUI Assessment | `ios-gui-assessment/SKILL.md` | SwiftUI/UIKit audit, native controls, HIG conformance, deprecated APIs, accessibility |
 | iOS App Audit | `ios-app-audit/SKILL.md` | Full production audit for iOS apps, 10-area framework (P0-P3), App Store compliance |
+| Apple Compliance Audit | `apple-compliance-audit/SKILL.md` | App Store Review Guidelines, privacy manifests, entitlements, HIG, submission readiness |
 
 ### `green-software` — Green Software & Sustainability
 | Skill | Path | Covers |
@@ -421,6 +422,7 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 |-------|-------------|
 | `ios-gui-assessment` | Audit iOS SwiftUI/UIKit projects for GUI consistency, native controls, HIG, and deprecated APIs. |
 | `ios-app-audit` | Comprehensive production audit for iOS apps covering security, compliance, privacy, and reliability. |
+| `apple-compliance-audit` | Apple App Store compliance audit covering Info.plist, entitlements, privacy manifests, HIG, and submission readiness. |
 
 ### Green Software & Sustainability
 | Skill | Description |

@@ -20,7 +20,7 @@ claude-skills/
   CLAUDE.md                              # Master configuration
 ```
 
-## Skills Catalog (58 skills)
+## Skills Catalog (59 skills)
 
 <!-- SKILLS_START -->
 
@@ -108,6 +108,7 @@ claude-skills/
 ### Mobile & Native
 | Skill | What it covers |
 |-------|----------------|
+| `apple-compliance-audit` | Apple App Store compliance audit for iOS apps covering Info.plist, entitlements, privacy manifests, App Store Review Guidelines, HIG, security, and submission readiness |
 | `ios-app-audit` | Comprehensive production audit for iOS apps covering security, App Store compliance, privacy, reliability, performance, accessibility, and code quality |
 | `ios-gui-assessment` | Audit iOS SwiftUI/UIKit projects for GUI consistency, native Apple control usage, HIG conformance, deprecated API detection, OS version compatibility, and accessibility |
 

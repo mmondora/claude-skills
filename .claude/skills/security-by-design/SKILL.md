@@ -6,7 +6,7 @@ description: "Security as a design property, not an added layer. OWASP Top 10, s
 
 # Security by Design
 
-> **Version**: 1.3.0 | **Last updated**: 2026-02-13
+> **Version**: 1.4.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -301,9 +301,231 @@ Flag for deeper review: functions with many trust assumptions, high branching lo
 
 ---
 
+## Secrets Rotation Implementation
+
+Static secrets are a ticking time bomb. Rotation must be automated and zero-downtime — no service restarts, no manual steps.
+
+### Dual-Read Pattern
+
+During rotation, the service reads both current and previous secret versions. This eliminates the race condition where the secret is updated but some instances still use the old one.
+
+```typescript
+interface SecretResolver {
+  getCurrent(): Promise<string>;
+  getPrevious(): Promise<string | null>;
+  verify(secret: string, candidate: string): Promise<boolean>;
+}
+
+class RotatingSecretResolver implements SecretResolver {
+  constructor(
+    private readonly secretName: string,
+    private readonly client: SecretManagerServiceClient,
+  ) {}
+
+  async getCurrent(): Promise<string> {
+    const [version] = await this.client.accessSecretVersion({
+      name: `${this.secretName}/versions/latest`,
+    });
+    return version.payload!.data!.toString();
+  }
+
+  async getPrevious(): Promise<string | null> {
+    try {
+      const [versions] = await this.client.listSecretVersions({ parent: this.secretName });
+      const enabled = versions
+        .filter((v) => v.state === 'ENABLED')
+        .sort((a, b) => Number(b.createTime!.seconds) - Number(a.createTime!.seconds));
+      if (enabled.length < 2) return null;
+      const [prev] = await this.client.accessSecretVersion({ name: enabled[1].name! });
+      return prev.payload!.data!.toString();
+    } catch {
+      return null;
+    }
+  }
+
+  async verify(secret: string, candidate: string): Promise<boolean> {
+    // Try current secret first, then previous (during rotation window)
+    const current = await this.getCurrent();
+    if (timingSafeEqual(Buffer.from(secret), Buffer.from(current))) return true;
+    const previous = await this.getPrevious();
+    if (previous && timingSafeEqual(Buffer.from(secret), Buffer.from(previous))) return true;
+    return false;
+  }
+}
+```
+
+### Rotation Sequence
+
+1. **Create new secret version** in Secret Manager
+2. **Deploy dual-read** — service reads both current and previous (already the default with `RotatingSecretResolver`)
+3. **Grace period** (default: 24h) — allows all instances to pick up the new version
+4. **Disable old version** — after grace period, disable the previous secret version
+5. **Automation**: Cloud Scheduler triggers rotation on a schedule (e.g., every 90 days)
+
+**Anti-pattern**: rotation that requires service restart. If your service caches the secret at startup and never refreshes, rotation requires redeployment — defeating the purpose of automated rotation.
+
+---
+
+## API Security Beyond BOLA
+
+BOLA is the #1 API vulnerability, but it's not the only one. The OWASP API Security Top 10 includes several more that are commonly missed.
+
+### BFLA (Broken Function Level Authorization)
+
+A user can access admin endpoints by guessing the URL. Authentication is not authorization — checking that a user is logged in does not mean they can access `/admin/users`.
+
+```typescript
+// VULNERABLE — auth middleware only checks authentication
+app.delete('/api/v1/users/:id', authMiddleware, async (req, res) => {
+  await db.deleteUser(req.params.id); // Any authenticated user can delete any user
+});
+
+// SAFE — role-based route guard
+app.delete('/api/v1/users/:id', authMiddleware, requireRole('admin'), async (req, res) => {
+  await db.deleteUser(req.params.id);
+});
+```
+
+### Excessive Data Exposure
+
+API returns the full database object when the client only needs 3 fields. This leaks internal fields, increases bandwidth, and exposes data that may be sensitive in certain contexts.
+
+```typescript
+// VULNERABLE — returns full object
+app.get('/api/v1/users/:id', authMiddleware, async (req, res) => {
+  const user = await db.findUser(req.params.id);
+  return res.json(user); // Includes passwordHash, internalNotes, billingDetails...
+});
+
+// SAFE — explicit response shaping with dedicated DTO
+const UserPublicSchema = z.object({
+  id: z.string(), name: z.string(), email: z.string(), role: z.string(),
+});
+
+app.get('/api/v1/users/:id', authMiddleware, async (req, res) => {
+  const user = await db.findUser(req.params.id);
+  return res.json(UserPublicSchema.parse(user)); // Only whitelisted fields
+});
+```
+
+### GraphQL-Specific Security
+
+```typescript
+import depthLimit from 'graphql-depth-limit';
+import { createComplexityLimitRule } from 'graphql-validation-complexity';
+
+const server = new ApolloServer({
+  schema,
+  introspection: process.env.NODE_ENV !== 'production', // Disable in production
+  validationRules: [
+    depthLimit(10),                                      // Max query depth
+    createComplexityLimitRule(1000, {                     // Max query cost
+      scalarCost: 1,
+      objectCost: 2,
+      listFactor: 10,
+    }),
+  ],
+});
+```
+
+Field-level authorization: use GraphQL directives or resolver-level checks to enforce access control per field, not just per type.
+
+**Anti-pattern**: relying on client-side field selection as a security boundary. A client can always request all fields — the server must enforce what is returned.
+
+---
+
+## Secure Defaults Pre-flight Checklist
+
+A single misconfiguration can void all other security measures. This checklist is the gate before a service is considered production-ready.
+
+### Pre-flight Checks
+
+- [ ] **TLS enforced** on all endpoints (no HTTP fallback, HSTS enabled)
+- [ ] **Security headers** applied (CSP, HSTS, X-Content-Type-Options, X-Frame-Options)
+- [ ] **CORS restricted** to known origins (never `*` in production)
+- [ ] **Debug/admin endpoints** disabled or protected in production (no `/debug`, `/metrics` without auth)
+- [ ] **Secrets loaded from Secret Manager**, not environment variables or config files
+- [ ] **Dependency audit passing** (no critical/high vulnerabilities in `npm audit`)
+- [ ] **SBOM generated** for release artifact
+- [ ] **Authentication required** on all non-public endpoints
+- [ ] **Rate limiting configured** on all public endpoints
+- [ ] **Error responses** do not leak internal details (no stack traces, no dependency names)
+- [ ] **Logging** does not contain PII, credentials, or tokens
+- [ ] **Input validation** on all endpoints (Zod schemas)
+
+Cross-reference: `insecure-defaults/SKILL.md` for automated detection of fail-open defaults, `sharp-edges/SKILL.md` for footgun design patterns.
+
+---
+
+## Security Policy Injection
+
+Security configurations (CORS origins, CSP directives, rate limits) hardcoded in source code are a maintenance and deployment nightmare. They must be injectable as configuration, varying per environment.
+
+### Pattern
+
+```typescript
+import { z } from 'zod';
+
+const SecurityPolicySchema = z.object({
+  cors: z.object({
+    allowedOrigins: z.array(z.string()),
+    allowedMethods: z.array(z.string()).default(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+    maxAge: z.number().default(86400),
+  }),
+  csp: z.object({
+    defaultSrc: z.array(z.string()),
+    scriptSrc: z.array(z.string()),
+    styleSrc: z.array(z.string()),
+    connectSrc: z.array(z.string()),
+  }),
+  rateLimit: z.object({
+    windowMs: z.number().default(60_000),
+    maxRequests: z.number().default(100),
+  }),
+});
+
+type SecurityPolicy = z.infer<typeof SecurityPolicySchema>;
+
+function loadSecurityPolicy(): SecurityPolicy {
+  const raw = JSON.parse(process.env.SECURITY_POLICY ?? '{}');
+  return SecurityPolicySchema.parse(raw);
+}
+```
+
+### Per-Environment Configuration
+
+| Environment | CORS Origins | CSP | Rate Limit |
+|-------------|-------------|-----|------------|
+| **Development** | `localhost:*` | Permissive (inline scripts allowed) | Disabled |
+| **Staging** | Production-like origins | Production-identical | Production-identical |
+| **Production** | Exact production domains only | Strict (no inline) | Enforced |
+
+### Runtime Reloadable
+
+For policy changes without redeployment, implement a config watcher or admin endpoint:
+
+```typescript
+let currentPolicy = loadSecurityPolicy();
+
+// Reload on config change (e.g., Secret Manager version update)
+setInterval(async () => {
+  try {
+    const fresh = loadSecurityPolicy();
+    currentPolicy = fresh;
+    logger.info('Security policy reloaded');
+  } catch (error) {
+    logger.error({ err: error }, 'Failed to reload security policy — keeping current');
+  }
+}, 5 * 60 * 1000); // Check every 5 minutes
+```
+
+**Anti-pattern**: security policies that differ between staging and production. If staging has permissive CORS and production has strict CORS, you'll discover CORS bugs in production — not staging. Staging must be production-identical for security configuration.
+
+---
+
 ## For Claude Code
 
-When generating code: Zod input validation on every endpoint, parameterized queries always, HTTP security headers in global middleware, no hardcoded secrets (use env vars referencing Secret Manager). Include `npm audit` in CI. Never `dangerouslySetInnerHTML` or `v-html` without explicit sanitization. When adding dependencies, document justification. Generate SBOM step in release CI workflow.
+When generating code: Zod input validation on every endpoint, parameterized queries always, HTTP security headers in global middleware, no hardcoded secrets (use env vars referencing Secret Manager). Include `npm audit` in CI. Never `dangerouslySetInnerHTML` or `v-html` without explicit sanitization. When adding dependencies, document justification. Generate SBOM step in release CI workflow. Implement secrets rotation with dual-read pattern — never cache secrets at startup without refresh. Apply BFLA guards (role-based route protection) on all admin/privileged endpoints. Shape API responses with explicit DTOs — never return raw database objects. For GraphQL, disable introspection in production and enforce depth/complexity limits. Run the secure defaults pre-flight checklist before marking a service production-ready. Load security policies (CORS, CSP, rate limits) from injectable configuration, not hardcoded values.
 
 ---
 

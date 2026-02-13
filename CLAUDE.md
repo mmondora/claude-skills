@@ -169,6 +169,7 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 |-------|------|--------|
 | Architecture Decision Records | `architecture-decision-records/SKILL.md` | ADR governance, format, lifecycle, review process, filled example |
 | Prompt Architect | `prompt-architect/SKILL.md` | Prompt engineering frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density) |
+| Ask Questions If Underspecified | `ask-questions-if-underspecified/SKILL.md` | Clarify underspecified requirements before implementation |
 
 ### `cloud-infrastructure` — Cloud & Infrastructure
 | Skill | Path | Covers |
@@ -179,6 +180,7 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Observability | `observability/SKILL.md` | Logging, metrics, tracing, SLI/SLO/SLA, Prometheus alerts |
 | Terraform Test | `terraform-test/SKILL.md` | Test files, run blocks, assertions, mocking providers and data sources |
 | Terraform Style Guide | `terraform-style-guide/SKILL.md` | HCL style conventions, naming, formatting, best practices |
+| Kubernetes Specialist | `kubernetes-specialist/SKILL.md` | Workloads, networking, security hardening, Helm, GitOps |
 
 ### `security-compliance` — Security & Compliance
 | Skill | Path | Covers |
@@ -188,6 +190,8 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Authentication & Authorization | `authn-authz/SKILL.md` | OAuth2/OIDC PKCE, RBAC/ABAC, multi-tenant auth, token revocation |
 | OWASP Security | `owasp-security/SKILL.md` | OWASP Top 10:2025, ASVS 5.0, agentic AI security |
 | Differential Review | `differential-review/SKILL.md` | Security-focused differential review of code changes, blast radius analysis |
+| Insecure Defaults | `insecure-defaults/SKILL.md` | Fail-open insecure defaults detection, hardcoded secrets, weak auth |
+| Sharp Edges | `sharp-edges/SKILL.md` | Error-prone APIs, dangerous configurations, footgun design detection |
 
 ### `testing-quality` — Testing & Quality
 | Skill | Path | Covers |
@@ -198,6 +202,9 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Security Testing | `security-testing/SKILL.md` | SAST, DAST (ZAP), dependency/container/IaC scanning, severity policy |
 | Quality Gates | `quality-gates/SKILL.md` | Release-blocking gates, PASS/FAIL verdicts, coverage regression detection |
 | Property-Based Testing | `property-based-testing/SKILL.md` | Property-based testing across languages and smart contracts |
+| Systematic Debugging | `systematic-debugging/SKILL.md` | Root-cause-first debugging methodology, four-phase investigation |
+| Combinatorial Testing | `pypict-claude-skill/SKILL.md` | Pairwise and combinatorial test case design using PICT models |
+| Verification Before Completion | `verification-before-completion/SKILL.md` | Verification evidence required before completion claims |
 
 ### `delivery-release` — Delivery & Release
 | Skill | Path | Covers |
@@ -208,6 +215,10 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Production Readiness Review | `production-readiness-review/SKILL.md` | GO/NO-GO framework, NFR checklist, PRR output document |
 | Incident Management | `incident-management/SKILL.md` | Severity levels, incident response process, postmortems, MTTD/MTTR |
 | Chaos Engineer | `chaos-engineer/SKILL.md` | Chaos experiments, failure injection, resilience testing, game days |
+| Writing Plans | `writing-plans/SKILL.md` | TDD-based micro-task implementation planning |
+| Executing Plans | `executing-plans/SKILL.md` | Batch execution with feedback checkpoints |
+| Using Git Worktrees | `using-git-worktrees/SKILL.md` | Isolated git worktree workspace setup for feature development |
+| Finishing a Development Branch | `finishing-a-development-branch/SKILL.md` | Feature branch completion process with structured options |
 
 ### `documentation-diagrams` — Documentation & Diagrams
 | Skill | Path | Covers |
@@ -230,6 +241,10 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | API Design | `api-design/SKILL.md` | REST conventions, versioning, pagination, RFC 7807 errors, OpenAPI-first |
 | Microservices Architect | `microservices-architect/SKILL.md` | Service decomposition, DDD, saga patterns, service mesh, distributed tracing |
 | Legacy Modernizer | `legacy-modernizer/SKILL.md` | Strangler fig pattern, incremental migration, technical debt reduction |
+| GraphQL Architect | `graphql-architect/SKILL.md` | GraphQL schema design, Apollo Federation, DataLoader, query optimization |
+| WebSocket Engineer | `websocket-engineer/SKILL.md` | WebSocket/Socket.IO, real-time communication, scaling, presence patterns |
+| Error Handling & Resilience | `error-handling-resilience/SKILL.md` | Typed errors, circuit breakers, retry, bulkheads, graceful degradation |
+| Microservices Patterns | `microservices-patterns/SKILL.md` | Bounded contexts, CQRS, API gateway, distributed tracing, resilience |
 
 ### `ai-applications` — AI & Applications
 | Skill | Path | Covers |
@@ -305,8 +320,8 @@ The skills themselves follow the principle of evolutionary coherence. Each skill
 
 ---
 
-*Last revision: 2026-02-08*
-*CLAUDE.md version: 1.1.0*
+*Last revision: 2026-02-13*
+*CLAUDE.md version: 1.2.0*
 
 <!-- claude-skills:begin -->
 ## Installed Skills
@@ -319,6 +334,7 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `architecture-decision-records` | Architecture Decision Records governance and format. |
 | `prompt-architect` | Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). |
 | `skill-clusters` | Skill cluster index and loader. |
+| `ask-questions-if-underspecified` | Clarify underspecified requirements before implementation. |
 
 ### Cloud & Infrastructure
 | Skill | Description |
@@ -329,6 +345,7 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `observability` | Logging, metrics, and tracing with OpenTelemetry. |
 | `terraform-test` | Comprehensive guide for writing and running Terraform tests. |
 | `terraform-style-guide` | Terraform HCL style conventions and best practices. |
+| `kubernetes-specialist` | Kubernetes workloads, networking, security hardening, Helm, and GitOps. |
 
 ### Security & Compliance
 | Skill | Description |
@@ -338,6 +355,8 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `differential-review` | Security-focused differential review of code changes. |
 | `owasp-security` | OWASP Top 10:2025, ASVS 5.0, and agentic AI security. |
 | `security-by-design` | Security as a design property, not an added layer. |
+| `insecure-defaults` | Fail-open insecure defaults detection. |
+| `sharp-edges` | Error-prone APIs and footgun design detection. |
 
 ### Testing & Quality
 | Skill | Description |
@@ -348,6 +367,9 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `security-testing` | Automated security testing in CI. |
 | `testing-implementation` | Concrete test tooling and patterns for TypeScript and Swift. |
 | `testing-strategy` | Testing strategy that produces real confidence. |
+| `systematic-debugging` | Root-cause-first debugging methodology. |
+| `pypict-claude-skill` | Pairwise and combinatorial test case design using PICT models. |
+| `verification-before-completion` | Verification evidence required before completion claims. |
 
 ### Delivery & Release
 | Skill | Description |
@@ -358,6 +380,10 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `incident-management` | Incident response process from detection to postmortem. |
 | `production-readiness-review` | Production readiness GO/NO-GO framework. |
 | `release-management` | Release management with automated SemVer, changelog generation, release notes, rollback strategies, and hotfix workflow. |
+| `writing-plans` | TDD-based micro-task implementation planning. |
+| `executing-plans` | Batch execution with feedback checkpoints. |
+| `using-git-worktrees` | Isolated git worktree workspace setup. |
+| `finishing-a-development-branch` | Feature branch completion with structured options. |
 
 ### Documentation & Diagrams
 | Skill | Description |
@@ -380,6 +406,10 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `api-design` | API design conventions for REST and GraphQL. |
 | `legacy-modernizer` | Strangler fig pattern, incremental migration, and technical debt reduction. |
 | `microservices-architect` | Service decomposition, DDD, saga patterns, and service mesh. |
+| `graphql-architect` | GraphQL schema design, Apollo Federation, DataLoader, and query optimization. |
+| `websocket-engineer` | WebSocket/Socket.IO, real-time communication, scaling, and presence patterns. |
+| `error-handling-resilience` | Typed errors, circuit breakers, retry, bulkheads, and graceful degradation. |
+| `microservices-patterns` | Bounded contexts, CQRS, API gateway, distributed tracing, and resilience. |
 
 ### AI & Applications
 | Skill | Description |

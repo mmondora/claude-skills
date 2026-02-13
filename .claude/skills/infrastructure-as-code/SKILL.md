@@ -6,7 +6,7 @@ description: "Infrastructure as Code with Terraform and Pulumi. State management
 
 # Infrastructure as Code
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 
@@ -246,6 +246,99 @@ resource "google_cloud_run_v2_service" "api" {
 
 ---
 
+## Terraform Testing
+
+Terraform's built-in testing framework (v1.6+) validates modules without affecting production. Tests use `.tftest.hcl` files in a `tests/` directory.
+
+### Test Modes
+
+**Plan mode** (unit tests): validates logic without creating resources. Fast, free, no credentials needed.
+
+**Apply mode** (integration tests): creates real temporary resources. Slower, costs money, requires provider credentials.
+
+**Mock providers** (v1.7+): simulate provider behavior without API calls. Best for CI pipelines without cloud access.
+
+### File Structure
+
+```
+infra/
+  modules/
+    cloud-run-service/
+      main.tf
+      variables.tf
+      outputs.tf
+      tests/
+        defaults_unit_test.tftest.hcl
+        validation_unit_test.tftest.hcl
+        full_stack_integration_test.tftest.hcl
+```
+
+### Unit Test Example (Plan Mode)
+
+```hcl
+# tests/defaults_unit_test.tftest.hcl
+variables {
+  environment   = "test"
+  service_name  = "test-api"
+}
+
+run "test_default_configuration" {
+  command = plan
+
+  assert {
+    condition     = google_cloud_run_v2_service.service.labels["environment"] == "test"
+    error_message = "Environment label should match input variable"
+  }
+
+  assert {
+    condition     = google_cloud_run_v2_service.service.labels["managed-by"] == "terraform"
+    error_message = "managed-by label must be terraform"
+  }
+}
+
+run "test_invalid_environment" {
+  command = plan
+  variables { environment = "" }
+  expect_failures = [var.environment]
+}
+```
+
+### Mock Provider Example
+
+```hcl
+# tests/mock_test.tftest.hcl
+mock_provider "google" {
+  mock_resource "google_cloud_run_v2_service" {
+    defaults = {
+      id  = "projects/test/locations/europe-west1/services/test-api"
+      uri = "https://test-api-abc123.run.app"
+    }
+  }
+}
+
+run "test_with_mocks" {
+  command = plan
+
+  assert {
+    condition     = output.service_url != ""
+    error_message = "Service URL output should not be empty"
+  }
+}
+```
+
+### CI Integration
+
+```yaml
+# In GitHub Actions — add after terraform validate
+- name: Terraform Test
+  run: terraform test -verbose
+  working-directory: infra/modules/cloud-run-service
+```
+
+Run unit tests (plan mode) on every PR. Run integration tests (apply mode) on merge to main or on a weekly schedule.
+
+---
+
 ## Pre-Apply Checklist
 
 - [ ] `terraform plan` reviewed — no unexpected destroys or replacements
@@ -275,4 +368,4 @@ When generating IaC: modules per functional domain, parameterized variables per 
 
 ---
 
-*Internal references*: `finops/SKILL.md`, `security-by-design/SKILL.md`, `containerization/SKILL.md`
+*Internal references*: `finops/SKILL.md`, `security-by-design/SKILL.md`, `containerization/SKILL.md`, `testing-strategy/SKILL.md`

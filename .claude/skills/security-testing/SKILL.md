@@ -6,7 +6,7 @@ description: "Automated security testing in CI. SAST, DAST, dependency scanning,
 
 # Security Testing
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 
@@ -185,6 +185,72 @@ Pre-commit hook (git-secrets, gitleaks) blocking commits containing secret patte
 
 ---
 
+## Constant-Time Testing
+
+Timing attacks exploit execution time variations to extract secrets from cryptographic implementations. Any code handling private keys, passwords, or sensitive cryptographic material requires constant-time analysis.
+
+### Common Timing Violation Patterns
+
+Four patterns cause most timing vulnerabilities:
+
+| Pattern | Example | Severity |
+|---------|---------|----------|
+| Secret-dependent branch | `if (secret == 1) { ... }` | Critical |
+| Secret-dependent array access | `lookupTable[secretIndex]` | High |
+| Variable-time division | `result = x / secret` | Medium |
+| Variable-time shift | `result = a << secret` | Medium |
+
+### Testing Approach
+
+**Statistical testing (dudect)**: measures execution time for two input classes (fixed vs random) and uses Welch's t-test to detect significant differences. Simple setup, practical for CI.
+
+**Dynamic tracing (Timecop/Valgrind)**: marks sensitive memory regions and traces execution to detect timing-dependent operations. Pinpoints exact line of leak.
+
+**Recommended workflow**:
+1. Start with dudect — quick statistical check (5-10 minutes)
+2. If leaks found — use Timecop to pinpoint root cause
+3. For high-assurance code — apply formal verification (ct-verif)
+4. Integrate dudect into CI for continuous monitoring
+
+### When to Apply
+
+- Auditing cryptographic implementations (primitives, protocols)
+- Code handling private keys, passwords, or tokens
+- Implementing crypto algorithms or constant-time comparisons
+- Reviewing PRs that touch cryptographic code
+
+For non-cryptographic code that does not process secrets, constant-time analysis is not needed.
+
+---
+
+## Semgrep Advanced Usage
+
+When running Semgrep at scale on multi-language codebases:
+
+**Pro vs OSS**: Semgrep Pro enables cross-file taint tracking (250%+ more true positives). Check availability: `semgrep --pro --validate --config p/default`. Always prefer Pro when available.
+
+**Parallel scanning**: for multi-language projects, run per-language scans in parallel with language-scoped rulesets (`--include="*.py"` for Python rules). Always use `--metrics=off` to prevent telemetry.
+
+**Required rulesets**: beyond official registry rules (`p/security-audit`, `p/secrets`), include third-party rules from Trail of Bits (`trailofbits/semgrep-rules`) which catch vulnerabilities not in the official registry.
+
+**Triage workflow**: raw findings contain false positives. Always triage before reporting — review findings with code context, classify as true/false positive, report only confirmed findings.
+
+---
+
+## SARIF Processing
+
+Security scanning tools output SARIF (Static Analysis Results Interchange Format, OASIS 2.1.0). Key processing patterns:
+
+**Quick analysis with jq**: `jq '[.runs[].results[]] | length' results.sarif` (count findings), `jq '.runs[].results[] | select(.level == "error")' results.sarif` (filter by severity).
+
+**Aggregation**: when combining results from multiple tools, merge SARIF files preserving tool metadata. Deduplicate using `partialFingerprints` or `fingerprints` fields — path-based matching fails across environments.
+
+**CI/CD integration**: upload SARIF to GitHub Code Scanning (`github/codeql-action/upload-sarif@v3`). Gate on new findings: compare current SARIF against baseline to detect regressions.
+
+**Regression detection**: store baseline SARIF per branch. On each PR, diff current vs baseline — new findings block merge, resolved findings are noted. Use fingerprints (not paths) for stable comparison.
+
+---
+
 ## Severity Policy & Gating
 
 ### Default Severity Policy
@@ -228,6 +294,7 @@ Exceptions are reviewed monthly. Expired exceptions become blockers.
 | IaC scan | On infra changes | Checkov/tfsec | PR gate |
 | DAST | Release candidate | OWASP ZAP | Release gate |
 | Authorization tests | Every PR | Vitest/XCTest | PR gate |
+| Constant-time test | On crypto changes | dudect/Timecop | PR gate (crypto) |
 
 ---
 

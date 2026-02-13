@@ -6,7 +6,7 @@ description: "Concrete test tooling and patterns for TypeScript and Swift. Vites
 
 # Test Implementation
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 
@@ -232,9 +232,90 @@ function buildInvoice(overrides: Partial<Invoice> = {}): Invoice {
 
 ---
 
+## Fuzz Testing
+
+Automated testing with random/semi-random inputs to discover edge cases, crashes, and security vulnerabilities that hand-written tests miss. Particularly effective for parsers, validators, and protocol handlers.
+
+### When to Fuzz
+
+- Input parsers (JSON, XML, binary protocols, file formats)
+- Validation routines and sanitizers
+- Serialization/deserialization code
+- Cryptographic implementations
+- Any code processing untrusted external input
+
+### Harness Design Principles
+
+A fuzzing harness bridges the fuzzer's random byte generation and your application's API. Quality rules:
+
+| Rule | Rationale |
+|------|-----------|
+| Handle all input sizes | Fuzzer generates empty, tiny, huge inputs |
+| Be fast | Target 100s-1000s executions/sec — no logging, no I/O |
+| Maintain determinism | Same input must always produce same behavior |
+| Reset state between iterations | Global state reduces reproducibility |
+| Free resources | Prevent memory exhaustion in long campaigns |
+
+### TypeScript / Node.js — Jsfuzz
+
+```typescript
+// fuzz/parse-invoice.fuzz.ts
+export function fuzz(data: Buffer) {
+  try {
+    const input = data.toString('utf-8');
+    parseInvoicePayload(input); // Target function
+  } catch (e) {
+    // Expected errors from invalid input are fine
+    // Unexpected crashes (TypeError, RangeError) are findings
+    if (e instanceof SyntaxError || e instanceof ValidationError) return;
+    throw e; // Re-throw unexpected errors for the fuzzer to catch
+  }
+}
+```
+
+### Rust — cargo-fuzz
+
+```rust
+#![no_main]
+use libfuzzer_sys::fuzz_target;
+
+fuzz_target!(|data: &[u8]| {
+    if let Ok(input) = std::str::from_utf8(data) {
+        let _ = parse_invoice_payload(input);
+    }
+});
+```
+
+### Interleaved Fuzzing
+
+A single harness testing multiple related operations:
+
+```typescript
+export function fuzz(data: Buffer) {
+  if (data.length < 2) return;
+  const mode = data[0] % 4;
+  const payload = data.slice(1).toString('utf-8');
+
+  switch (mode) {
+    case 0: parseInvoice(payload); break;
+    case 1: validateAmount(payload); break;
+    case 2: formatCurrency(payload); break;
+    case 3: sanitizeInput(payload); break;
+  }
+}
+```
+
+Advantage: single corpus, inputs interesting for one operation may trigger bugs in others.
+
+### CI Integration
+
+Run fuzz tests for a fixed duration in CI (5-10 minutes). Store corpus in a persistent location (Git LFS or artifact storage) to accumulate interesting inputs across runs.
+
+---
+
 ## For Claude Code
 
-When generating tests: one test file per significant production file, AAA structure, test data factories for reusable data, explicit error case tests, names describing expected behavior. For frontend: Testing Library (user behavior), never test internal component implementation.
+When generating tests: one test file per significant production file, AAA structure, test data factories for reusable data, explicit error case tests, names describing expected behavior. For frontend: Testing Library (user behavior), never test internal component implementation. For fuzz testing: write harnesses for all public parsers and validators, handle expected errors gracefully, re-throw unexpected errors for the fuzzer to catch.
 
 ---
 

@@ -6,7 +6,7 @@ description: "Skill cluster index and loader. Maps clusters to their constituent
 
 # Skill Clusters
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 
@@ -21,8 +21,9 @@ Central index of skill clusters for bulk loading. When a user requests skills by
 Skills:
 - `architecture-decision-records/SKILL.md` — ADR governance, format, lifecycle
 - `prompt-architect/SKILL.md` — Prompt engineering frameworks (CO-STAR, RISEN, TIDD-EC, etc.)
+- `ask-questions-if-underspecified/SKILL.md` — Clarify underspecified requirements before implementation
 
-**When to load**: architectural governance, decision recording, prompt engineering.
+**When to load**: architectural governance, decision recording, prompt engineering, requirement clarification.
 
 ### cloud-infrastructure — Cloud & Infrastructure
 
@@ -33,8 +34,9 @@ Skills:
 - `observability/SKILL.md` — Logging, metrics, tracing, SLI/SLO/SLA
 - `terraform-test/SKILL.md` — Terraform test files, run blocks, assertions, mocking
 - `terraform-style-guide/SKILL.md` — Terraform HCL style conventions and best practices
+- `kubernetes-specialist/SKILL.md` — Kubernetes workloads, networking, security hardening, Helm, GitOps
 
-**When to load**: cloud setup, infrastructure provisioning, cost optimization, monitoring, Terraform.
+**When to load**: cloud setup, infrastructure provisioning, cost optimization, monitoring, Terraform, Kubernetes.
 
 ### security-compliance — Security & Compliance
 
@@ -44,8 +46,10 @@ Skills:
 - `authn-authz/SKILL.md` — OAuth2/OIDC, RBAC/ABAC, multi-tenant auth
 - `owasp-security/SKILL.md` — OWASP Top 10:2025, ASVS 5.0, agentic AI security
 - `differential-review/SKILL.md` — Security-focused differential review of code changes
+- `insecure-defaults/SKILL.md` — Fail-open insecure defaults detection
+- `sharp-edges/SKILL.md` — Error-prone APIs and footgun design detection
 
-**When to load**: security reviews, compliance assessments, auth implementation, code audits.
+**When to load**: security reviews, compliance assessments, auth implementation, code audits, secure defaults.
 
 ### testing-quality — Testing & Quality
 
@@ -56,8 +60,11 @@ Skills:
 - `security-testing/SKILL.md` — SAST, DAST, dependency/container scanning
 - `quality-gates/SKILL.md` — Release-blocking gates, PASS/FAIL verdicts
 - `property-based-testing/SKILL.md` — Property-based testing across languages and smart contracts
+- `systematic-debugging/SKILL.md` — Root-cause-first debugging methodology
+- `pypict-claude-skill/SKILL.md` — Combinatorial testing with PICT models
+- `verification-before-completion/SKILL.md` — Verification evidence before completion claims
 
-**When to load**: test writing, quality assessment, CI gate configuration, property-based testing.
+**When to load**: test writing, quality assessment, CI gate configuration, property-based testing, debugging, combinatorial testing.
 
 ### delivery-release — Delivery & Release
 
@@ -68,8 +75,12 @@ Skills:
 - `production-readiness-review/SKILL.md` — GO/NO-GO framework, NFR checklist
 - `incident-management/SKILL.md` — Severity levels, postmortems, MTTD/MTTR
 - `chaos-engineer/SKILL.md` — Chaos experiments, failure injection, resilience testing
+- `writing-plans/SKILL.md` — TDD-based micro-task implementation planning
+- `executing-plans/SKILL.md` — Batch execution with feedback checkpoints
+- `using-git-worktrees/SKILL.md` — Isolated git worktree workspace setup
+- `finishing-a-development-branch/SKILL.md` — Feature branch completion process
 
-**When to load**: CI/CD setup, release process, incident response, feature rollout, resilience.
+**When to load**: CI/CD setup, release process, incident response, feature rollout, resilience, implementation planning.
 
 ### documentation-diagrams — Documentation & Diagrams
 
@@ -96,8 +107,12 @@ Skills:
 - `api-design/SKILL.md` — REST conventions, versioning, pagination, RFC 7807, OpenAPI-first
 - `microservices-architect/SKILL.md` — Service decomposition, DDD, saga patterns, service mesh
 - `legacy-modernizer/SKILL.md` — Strangler fig pattern, incremental migration, tech debt reduction
+- `graphql-architect/SKILL.md` — GraphQL schema design, Apollo Federation, DataLoader, query optimization
+- `websocket-engineer/SKILL.md` — WebSocket/Socket.IO, real-time communication, scaling, presence
+- `error-handling-resilience/SKILL.md` — Typed errors, circuit breakers, retry, bulkheads, graceful degradation
+- `microservices-patterns/SKILL.md` — Bounded contexts, CQRS, API gateway, distributed tracing
 
-**When to load**: API design, microservices architecture, system modernization, distributed systems.
+**When to load**: API design, microservices architecture, system modernization, distributed systems, GraphQL, real-time, resilience.
 
 ### ai-applications — AI & Applications
 
@@ -139,7 +154,7 @@ Use these aliases to match user requests to clusters:
 | delivery, release, deploy, CI/CD, chaos | rilascio, deploy, pipeline | `delivery-release` |
 | docs, documentation, diagrams | documentazione, diagrammi | `documentation-diagrams` |
 | data, database, events, caching, optimizer | dati, database, eventi, cache | `data-architecture` |
-| api, architecture, microservices, legacy | api, architettura, microservizi | `architecture-patterns` |
+| api, architecture, microservices, legacy, graphql, websocket, resilience | api, architettura, microservizi, graphql, websocket, resilienza | `architecture-patterns` |
 | ai, rag, vector, embeddings | ai, rag, vettori, embeddings | `ai-applications` |
 | mobile, ios, swift, swiftui, native | mobile, ios, swift, nativo | `mobile` |
 | green, sustainability, carbon, SCI | green, sostenibilità, carbonio, SCI | `green-software` |

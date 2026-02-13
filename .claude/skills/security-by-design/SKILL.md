@@ -6,7 +6,7 @@ description: "Security as a design property, not an added layer. OWASP Top 10, s
 
 # Security by Design
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 
@@ -248,6 +248,56 @@ GitHub Actions attestation:
 ## Zero Trust
 
 No resource is secure just because it's "internal." Every service boundary validates identity and authorization. Cloud Run + IAM for service-to-service auth (caller must have `roles/run.invoker` on the called service). For frontend calls: JWT validated on every request, never session based on IP or network position.
+
+---
+
+## Security Audit Methodology
+
+Structured approach for security-critical code review, adapted from security audit best practices.
+
+### Phase 1 — Initial Orientation
+
+Before deep analysis, perform a minimal mapping:
+1. Identify major modules and public entrypoints
+2. Note actors (users, services, external systems)
+3. Identify sensitive data stores and state variables
+4. Map trust boundaries (where untrusted input enters the system)
+5. Build a preliminary structure without assuming behavior
+
+### Phase 2 — Granular Analysis
+
+For each security-critical function, analyze:
+
+| Aspect | What to Document |
+|--------|-----------------|
+| **Purpose** | Why the function exists and its role in the system |
+| **Inputs & Assumptions** | Parameters, implicit inputs (auth context, tenant), preconditions |
+| **Outputs & Effects** | Return values, state writes, events emitted, external calls |
+| **Trust Assumptions** | What the function assumes about its callers and inputs |
+| **Invariants** | What must always be true before and after execution |
+
+Apply the **5 Whys** to each assumption: "Why does this function trust the caller?" — trace until you reach a verified check or an unverified assumption (which is a finding).
+
+### Phase 3 — Trust Boundary Mapping
+
+Map every path from untrusted input to sensitive operations:
+
+```
+External Request → API Gateway (auth) → Route Handler (authz) → Service (validation) → Database (RLS)
+```
+
+At each boundary crossing, verify: authentication check exists, authorization check exists, input validation occurs, output doesn't leak internal details.
+
+### Assumption Tracking
+
+Maintain explicit assumptions and update when contradicted:
+- "Earlier I assumed X; after inspecting the code, Y is the actual behavior"
+- Never reshape evidence to fit earlier assumptions
+- Express uncertainty explicitly: "Unclear; need to inspect X" — not "It probably..."
+
+### Complexity & Fragility Indicators
+
+Flag for deeper review: functions with many trust assumptions, high branching logic, multi-step state dependencies, cross-module state mutations, error handling that differs from the happy path.
 
 ---
 

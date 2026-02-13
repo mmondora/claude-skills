@@ -6,7 +6,7 @@ description: "Logging, metrics, and tracing with OpenTelemetry. Structured JSON 
 
 # Observability
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 
@@ -25,6 +25,46 @@ Structured JSON logs. Every entry: timestamp ISO-8601, level (debug/info/warn/er
 **Never log**: credentials, tokens, PII (email, phone, address — only if strictly necessary and with masking), full request payloads (only at debug level).
 
 **Correlation ID**: propagated via HTTP header (`X-Request-Id`), included in events, passed to every log. Enables tracing a single operation across all services.
+
+#### Structured Logger Setup
+
+```typescript
+import pino from 'pino';
+
+const logger = pino({
+  level: process.env.LOG_LEVEL ?? 'info',
+  formatters: {
+    level: (label) => ({ level: label }), // 'info' not 30
+  },
+  serializers: {
+    err: pino.stdSerializers.err,
+    req: (req) => ({
+      method: req.method,
+      url: req.url,
+      correlationId: req.headers['x-request-id'],
+    }),
+  },
+  redact: {
+    paths: ['req.headers.authorization', 'body.password', 'body.token', '*.email', '*.phone'],
+    censor: '[REDACTED]',
+  },
+  timestamp: pino.stdTimeFunctions.isoTime,
+});
+```
+
+#### PII Redaction
+
+Automatically redact sensitive fields. Configure redaction paths at logger creation, not per-log-call. Common patterns to redact: authorization headers, passwords, tokens, emails, phone numbers, IP addresses (depending on jurisdiction).
+
+#### Log Sampling
+
+In high-throughput services, log sampling prevents storage explosion:
+- `error`: always log (100%)
+- `warn`: always log (100%)
+- `info`: sample at 10-50% in production for high-volume endpoints
+- `debug`: never in production (use dynamic log levels for temporary debugging)
+
+Configure sampling per endpoint — health check endpoints at 0%, business operations at 100%.
 
 ### Metrics (how it's going)
 
@@ -239,6 +279,50 @@ Observability must cover resilience mechanisms:
 
 ---
 
+## Profiling
+
+When metrics show high latency or resource consumption but don't reveal the cause, profiling identifies the exact code paths consuming CPU, memory, or event loop time.
+
+### When to Profile
+
+- p99 latency exceeds SLO but traces show no obvious slow dependency
+- Memory usage grows over time (potential leak)
+- CPU spikes during specific operations
+- Event loop lag increases under load
+
+### CPU Profiling
+
+Node.js built-in profiler:
+
+```bash
+# Generate V8 CPU profile (60 seconds)
+node --cpu-prof --cpu-prof-dir=./profiles app.js
+# Analyze with Chrome DevTools or speedscope.app
+```
+
+For production: use `--prof` flag or continuous profiling tools (Grafana Pyroscope, Google Cloud Profiler) that sample with minimal overhead (< 2%).
+
+### Memory Profiling
+
+```bash
+# Heap snapshot for memory leak investigation
+node --heapsnapshot-signal=SIGUSR2 app.js
+# Send signal to trigger snapshot: kill -USR2 <pid>
+```
+
+Heap snapshots capture object graph at a point in time. Compare two snapshots taken minutes apart to identify growing object types.
+
+### Continuous Profiling in Production
+
+Low-overhead sampling (1-5%) that runs continuously, enabling after-the-fact investigation:
+- Google Cloud Profiler (GCP native, free)
+- Grafana Pyroscope (self-hosted, supports Node.js, Go, Rust)
+- Datadog Continuous Profiler (SaaS)
+
+Continuous profiling replaces the need for "reproduce in staging" — production profiles capture real behavior.
+
+---
+
 ## Anti-Patterns
 
 - **"We'll add monitoring later"**: if it's not observable at launch, incidents will be diagnosed blind
@@ -255,4 +339,4 @@ When generating services: include OpenTelemetry setup in the entrypoint, structu
 
 ---
 
-*Internal references*: `production-readiness-review/SKILL.md`, `security-by-design/SKILL.md`, `cicd-pipeline/SKILL.md`
+*Internal references*: `production-readiness-review/SKILL.md`, `security-by-design/SKILL.md`, `cicd-pipeline/SKILL.md`, `error-handling-resilience/SKILL.md`

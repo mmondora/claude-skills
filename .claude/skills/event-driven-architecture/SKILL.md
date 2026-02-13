@@ -6,7 +6,7 @@ description: "Event-driven systems with CloudEvents and GCP Pub/Sub. Event desig
 
 # Event-Driven Architecture
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 
@@ -278,6 +278,86 @@ Pub/Sub supports `seek` to replay messages from a snapshot or timestamp.
 
 ---
 
+## Event Sourcing
+
+Instead of storing current state, store the sequence of events that led to the current state. The event log is the source of truth; current state is derived by replaying events.
+
+### When to Use Event Sourcing
+
+Use when: full audit trail is required (finance, compliance), you need to reconstruct state at any point in time, domain has complex state transitions, or multiple read models are needed from the same data.
+
+Avoid when: simple CRUD with no audit requirements, domain has no meaningful state transitions, team lacks experience with eventual consistency patterns.
+
+### Event Store Schema
+
+```typescript
+const eventStore = pgTable('event_store', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  aggregateType: varchar('aggregate_type', { length: 100 }).notNull(),
+  aggregateId: uuid('aggregate_id').notNull(),
+  version: integer('version').notNull(),
+  eventType: varchar('event_type', { length: 200 }).notNull(),
+  payload: jsonb('payload').notNull(),
+  metadata: jsonb('metadata').notNull(), // correlationId, causationId, tenantId
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Unique constraint ensures optimistic concurrency
+// aggregateId + version must be unique
+```
+
+### Rebuilding State from Events
+
+```typescript
+function rebuildInvoice(events: DomainEvent[]): Invoice {
+  return events.reduce((state, event) => {
+    switch (event.type) {
+      case 'invoicing.invoice.created':
+        return { ...event.data, status: 'draft', version: event.version };
+      case 'invoicing.invoice.submitted':
+        return { ...state, status: 'submitted', version: event.version };
+      case 'invoicing.invoice.paid':
+        return { ...state, status: 'paid', paidAt: event.data.paidAt, version: event.version };
+      default:
+        return state;
+    }
+  }, {} as Invoice);
+}
+```
+
+### CQRS (Command Query Responsibility Segregation)
+
+Separate the write model (event store) from read models (projections optimized for queries). Write side appends events; read side consumes events and updates denormalized views.
+
+**When to use CQRS**: high read/write asymmetry, complex query needs different from write model, multiple clients need different views of the same data. **When to avoid**: simple CRUD, single read pattern, adds complexity without clear benefit.
+
+```typescript
+// Read model projection — listens to events and maintains a query-optimized view
+async function projectInvoiceList(event: DomainEvent): Promise<void> {
+  switch (event.type) {
+    case 'invoicing.invoice.created':
+      await db.insert(invoiceListView).values({
+        id: event.data.invoiceId,
+        tenantId: event.metadata.tenantId,
+        amount: event.data.amount.value,
+        currency: event.data.amount.currency,
+        status: 'draft',
+        createdAt: event.time,
+      });
+      break;
+    case 'invoicing.invoice.paid':
+      await db.update(invoiceListView)
+        .set({ status: 'paid', paidAt: event.data.paidAt })
+        .where(eq(invoiceListView.id, event.data.invoiceId));
+      break;
+  }
+}
+```
+
+Projections are disposable — if a projection is corrupted or needs a new field, replay events to rebuild it.
+
+---
+
 ## Dead Letter Queue (DLQ) Configuration
 
 ```hcl
@@ -320,8 +400,8 @@ resource "google_pubsub_topic" "invoice_events_dlq" {
 
 ## For Claude Code
 
-When generating events: CloudEvents format, Zod schema for validation, idempotency check in consumer, configured DLQ, ordering key if order matters. Use transactional outbox pattern for reliable event publishing. Generate producer and consumer as separate modules with independent tests. For multi-step workflows, document whether choreography or orchestration is used and why.
+When generating events: CloudEvents format, Zod schema for validation, idempotency check in consumer, configured DLQ, ordering key if order matters. Use transactional outbox pattern for reliable event publishing. Generate producer and consumer as separate modules with independent tests. For multi-step workflows, document whether choreography or orchestration is used and why. For event-sourced aggregates: append-only event store, rebuild state from events, CQRS projections for read models. Document the decision to use event sourcing in an ADR — it adds complexity.
 
 ---
 
-*Internal references*: `data-modeling/SKILL.md`, `observability/SKILL.md`, `infrastructure-as-code/SKILL.md`
+*Internal references*: `data-modeling/SKILL.md`, `observability/SKILL.md`, `infrastructure-as-code/SKILL.md`, `microservices-patterns/SKILL.md`

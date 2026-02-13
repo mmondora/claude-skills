@@ -106,6 +106,14 @@ Skills:
 
 **When to load**: RAG implementation, vector search, knowledge-grounded AI applications.
 
+### mobile — Mobile & Native
+
+Skills:
+- `ios-gui-assessment/SKILL.md` — SwiftUI/UIKit audit, native controls, HIG, deprecated APIs, accessibility
+- `ios-app-audit/SKILL.md` — Full production audit for iOS apps, 10-area P0-P3 framework
+
+**When to load**: iOS app review, GUI audit, App Store submission readiness, mobile production audit.
+
 ### green-software — Green Software & Sustainability
 
 Skills:
@@ -133,6 +141,7 @@ Use these aliases to match user requests to clusters:
 | data, database, events, caching, optimizer | dati, database, eventi, cache | `data-architecture` |
 | api, architecture, microservices, legacy | api, architettura, microservizi | `architecture-patterns` |
 | ai, rag, vector, embeddings | ai, rag, vettori, embeddings | `ai-applications` |
+| mobile, ios, swift, swiftui, native | mobile, ios, swift, nativo | `mobile` |
 | green, sustainability, carbon, SCI | green, sostenibilità, carbonio, SCI | `green-software` |
 
 ---
@@ -146,7 +155,7 @@ When a user requests a cluster (e.g., "load the security skills", "fammi la foun
 3. Apply the combined knowledge when generating output
 4. If the request is ambiguous, list matching clusters and ask for clarification
 
-When a user says "load all skills" or "carica tutto", load all 10 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → architecture-patterns → ai-applications → green-software → documentation-diagrams.
+When a user says "load all skills" or "carica tutto", load all 11 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → architecture-patterns → ai-applications → mobile → green-software → documentation-diagrams.
 
 ---
 

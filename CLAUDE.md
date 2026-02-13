@@ -236,6 +236,12 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 |-------|------|--------|
 | RAG Architect | `rag-architect/SKILL.md` | RAG systems, vector databases, semantic search, document retrieval |
 
+### `mobile` — Mobile & Native
+| Skill | Path | Covers |
+|-------|------|--------|
+| iOS GUI Assessment | `ios-gui-assessment/SKILL.md` | SwiftUI/UIKit audit, native controls, HIG conformance, deprecated APIs, accessibility |
+| iOS App Audit | `ios-app-audit/SKILL.md` | Full production audit for iOS apps, 10-area framework (P0-P3), App Store compliance |
+
 ### `green-software` — Green Software & Sustainability
 | Skill | Path | Covers |
 |-------|------|--------|
@@ -379,4 +385,18 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | Skill | Description |
 |-------|-------------|
 | `rag-architect` | RAG systems, vector databases, semantic search, and document retrieval. |
+
+### Mobile & Native
+| Skill | Description |
+|-------|-------------|
+| `ios-gui-assessment` | Audit iOS SwiftUI/UIKit projects for GUI consistency, native controls, HIG, and deprecated APIs. |
+| `ios-app-audit` | Comprehensive production audit for iOS apps covering security, compliance, privacy, and reliability. |
+
+### Green Software & Sustainability
+| Skill | Description |
+|-------|-------------|
+| `green-software-principles` | GSF principles, carbon/energy/hardware efficiency, and measurement. |
+| `carbon-aware-architecture` | Time/spatial shifting, demand shaping, and Carbon Aware SDK. |
+| `sci-measurement` | Software Carbon Intensity per ISO/IEC 21031:2024 and energy measurement. |
+| `sustainability-impact-assessment` | Impact assessment framework, green PRR, and GSF Maturity Matrix. |
 <!-- claude-skills:end -->

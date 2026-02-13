@@ -20,7 +20,7 @@ claude-skills/
   CLAUDE.md                              # Master configuration
 ```
 
-## Skills Catalog (1318 skills)
+## Skills Catalog (1320 skills)
 
 <!-- SKILLS_START -->
 
@@ -99,6 +99,20 @@ claude-skills/
 | Skill | What it covers |
 |-------|----------------|
 | `rag-architect` | description: Use when building RAG systems, vector databases, or knowledge-grounded AI applications requiring semantic search, document retrieval, or context augmentation. |
+
+### Mobile & Native
+| Skill | What it covers |
+|-------|----------------|
+| `ios-app-audit` | Comprehensive production audit for iOS apps covering security, App Store compliance, privacy, reliability, performance, accessibility, and code quality |
+| `ios-gui-assessment` | Audit iOS SwiftUI/UIKit projects for GUI consistency, native Apple control usage, HIG conformance, deprecated API detection, OS version compatibility, and accessibility |
+
+### Green Software & Sustainability
+| Skill | What it covers |
+|-------|----------------|
+| `carbon-aware-architecture` | Carbon-aware design patterns from the Green Software Foundation. Time shifting, spatial shifting, demand shaping, Carbon Aware SDK, carbon-aware CI/CD, region selection |
+| `green-software-principles` | Green Software Foundation principles as an architectural discipline. Carbon efficiency, energy efficiency, carbon awareness, hardware efficiency, measurement, climate commitments |
+| `sci-measurement` | Software Carbon Intensity (SCI) measurement per ISO/IEC 21031:2024. SCI formula, energy measurement, carbon intensity data, embodied carbon, functional units, CI integration |
+| `sustainability-impact-assessment` | Sustainability governance council for software projects. Impact assessment framework, green PRR checklist, sustainability review process, GSF Maturity Matrix self-assessment, broader impact (social, environmental, economic) |
 
 ### Uncategorized
 | Skill | What it covers |
@@ -299,7 +313,6 @@ claude-skills/
 | `canvas-design` | description: Create beautiful visual art in .png and .pdf documents using design philosophy. You should use this skill when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs, never copying existing artists' work to avoid copyright violations. |
 | `capsule_crm-automation` | Automate Capsule CRM tasks via Rube MCP (Composio): contacts, opportunities, cases, tasks, and pipeline management. Always search tools first for current schemas. |
 | `capsule-crm-automation` | Automate Capsule CRM operations -- manage contacts (parties), run structured filter queries, track tasks and projects, log entries, and handle organizations -- using natural language through the Composio MCP integration. |
-| `carbon-aware-architecture` | Carbon-aware design patterns from the Green Software Foundation. Time shifting, spatial shifting, demand shaping, Carbon Aware SDK, carbon-aware CI/CD, region selection |
 | `carbone-automation` | Automate Carbone tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `cardly-automation` | Automate Cardly tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `cargo-fuzz` | description: > |
@@ -644,7 +657,6 @@ claude-skills/
 | `grafbase-automation` | Automate Grafbase tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `graphhopper-automation` | Automate Graphhopper tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `graphql-architect` | description: Use when designing GraphQL schemas, implementing Apollo Federation, or building real-time subscriptions. Invoke for schema design, resolvers with DataLoader, query optimization, federation directives. |
-| `green-software-principles` | Green Software Foundation principles as an architectural discipline. Carbon efficiency, energy efficiency, carbon awareness, hardware efficiency, measurement, climate commitments |
 | `griptape-automation` | Automate Griptape tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `grist-automation` | Automate Grist tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `groqcloud-automation` | Automate AI inference, chat completions, audio translation, and TTS voice management through GroqCloud's high-performance API via Composio |
@@ -1077,7 +1089,6 @@ claude-skills/
 | `satismeter-automation` | Automate Satismeter tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `scanpy` | description: Standard single-cell RNA-seq analysis pipeline |
 | `scholar-evaluation` | description: Systematically evaluate scholarly work using the ScholarEval framework, providing structured assessment across research quality dimensions including problem formulation, methodology, analysis, and writing with quantitative scoring and actionable feedback. |
-| `sci-measurement` | Software Carbon Intensity (SCI) measurement per ISO/IEC 21031:2024. SCI formula, energy measurement, carbon intensity data, embodied carbon, functional units, CI integration |
 | `scientific-brainstorming` | description: Creative research ideation and exploration |
 | `scientific-critical-thinking` | description: Evaluate scientific claims and evidence quality |
 | `scientific-schematics` | description: Create publication-quality scientific diagrams using Nano Banana Pro AI with smart iterative refinement. Uses Gemini 3 Pro for quality review. Only regenerates if quality is below threshold for your document type. Specialized in neural network architectures, system diagrams, flowcharts, biological pathways, and complex scientific visualizations. |
@@ -1205,7 +1216,6 @@ claude-skills/
 | `supportivekoala-automation` | Automate Supportivekoala tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `survey_monkey-automation` | Automate SurveyMonkey tasks via Rube MCP (Composio): surveys, responses, collectors, and survey analytics. Always search tools first for current schemas. |
 | `survey-monkey-automation` | Automate SurveyMonkey survey creation, response collection, collector management, and survey discovery through natural language commands |
-| `sustainability-impact-assessment` | Sustainability governance council for software projects. Impact assessment framework, green PRR checklist, sustainability review process, GSF Maturity Matrix self-assessment, broader impact (social, environmental, economic) |
 | `svix-automation` | Automate Svix tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `swift-expert` | description: Use when building iOS/macOS applications with Swift 5.9+, SwiftUI, or async/await concurrency. Invoke for protocol-oriented programming, SwiftUI state management, actors, server-side Swift. |
 | `sympla-automation` | Automate Sympla tasks via Rube MCP (Composio). Always search tools first for current schemas. |

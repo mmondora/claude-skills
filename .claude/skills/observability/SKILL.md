@@ -6,7 +6,7 @@ description: "Logging, metrics, and tracing with OpenTelemetry. Structured JSON 
 
 # Observability
 
-> **Version**: 1.3.0 | **Last updated**: 2026-02-13
+> **Version**: 1.4.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -323,6 +323,234 @@ Continuous profiling replaces the need for "reproduce in staging" — production
 
 ---
 
+## Event-Driven Observability
+
+Distributed tracing works well for synchronous HTTP chains, but breaks down in async event-driven systems where a single event can fan out to multiple consumers with no direct call chain.
+
+### Trace Context in Events
+
+Embed W3C `traceparent` and `tracestate` in CloudEvents extensions so consumers can continue the trace started by the producer:
+
+```typescript
+import { context, propagation, trace, SpanStatusCode } from '@opentelemetry/api';
+
+interface CloudEvent<T = unknown> {
+  specversion: string;
+  type: string;
+  source: string;
+  id: string;
+  data: T;
+  traceparent?: string;   // W3C Trace Context
+  tracestate?: string;    // W3C Trace State
+}
+
+// Producer: inject trace context into event
+function injectTraceContext<T>(event: CloudEvent<T>): CloudEvent<T> {
+  const carrier: Record<string, string> = {};
+  propagation.inject(context.active(), carrier);
+  return {
+    ...event,
+    traceparent: carrier.traceparent,
+    tracestate: carrier.tracestate,
+  };
+}
+
+// Consumer: extract trace context and create child span
+function processEvent<T>(event: CloudEvent<T>, handler: (data: T) => Promise<void>): Promise<void> {
+  const carrier: Record<string, string> = {};
+  if (event.traceparent) carrier.traceparent = event.traceparent;
+  if (event.tracestate) carrier.tracestate = event.tracestate;
+
+  const parentContext = propagation.extract(context.active(), carrier);
+  const tracer = trace.getTracer('event-consumer');
+
+  return context.with(parentContext, () =>
+    tracer.startActiveSpan(`process ${event.type}`, async (span) => {
+      span.setAttribute('cloudevent.type', event.type);
+      span.setAttribute('cloudevent.source', event.source);
+      span.setAttribute('cloudevent.id', event.id);
+      try {
+        await handler(event.data);
+        span.setStatus({ code: SpanStatusCode.OK });
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        throw error;
+      } finally {
+        span.end();
+      }
+    }),
+  );
+}
+```
+
+### Fan-Out Tracing
+
+When a single event triggers multiple consumers, each consumer creates a **child span linked to the producer's span**, not a new trace. This preserves end-to-end visibility across the entire event flow.
+
+### Event Processing Spans
+
+Every event consumption should produce a span covering: queue receive, message processing, and acknowledgment. Span attributes: event type, source, consumer group, processing duration, success/failure.
+
+Cross-reference: `event-driven-architecture/SKILL.md` for CloudEvents format and delivery guarantees.
+
+**Anti-pattern**: creating a new trace per event consumption. This breaks end-to-end visibility — you lose the connection between the original request and all downstream event processing.
+
+---
+
+## Observability Cost Management
+
+Observability infrastructure can become 30-50% of the monitoring bill. Unchecked log volume and high-cardinality metrics are the main cost drivers.
+
+### Log Tiering
+
+| Tier | Retention | Indexing | Use Case |
+|------|-----------|----------|----------|
+| **Hot** | 7 days | Full queryable | Active debugging, real-time investigation |
+| **Warm** | 30 days | Reduced indexing | Recent investigation, trend analysis |
+| **Cold** | 90-365 days | Archive only | Compliance, audit, forensics |
+
+Configure automatic tier transitions. Most log backends (Cloud Logging, Elasticsearch, Loki) support retention policies and tiered storage.
+
+### Log Volume Controls
+
+Beyond per-level sampling (already covered), set per-endpoint volume budgets:
+
+```typescript
+const endpointBudgets: Record<string, { maxPerMinute: number }> = {
+  'GET /health': { maxPerMinute: 0 },           // Never log health checks
+  'GET /api/v1/users': { maxPerMinute: 100 },   // Cap high-traffic endpoints
+  'POST /api/v1/invoices': { maxPerMinute: 500 },
+};
+```
+
+### Metrics Cardinality Budget
+
+High-cardinality labels cause storage explosion. Set guardrails:
+
+- **Max labels per metric**: 5 (anything beyond adds diminishing value)
+- **Bounded label values**: label values must come from a known, bounded set (HTTP method, status code, endpoint template — NOT user IDs, request IDs)
+- **Flag metrics with >1,000 unique label combinations** for review and potential reduction
+- For user-level analysis, use traces — not metrics
+
+### Trace Sampling Cost Model
+
+| Traffic Type | Sampling Rate | Rationale |
+|-------------|---------------|-----------|
+| Errors (5xx) | 100% | Every error is worth investigating |
+| Slow requests (>p95) | 100% | Tail latency reveals real issues |
+| Successful requests | 1-10% | Statistical sampling is sufficient |
+| Health checks | 0% | Pure noise |
+
+Prefer **tail-based sampling** (decide after the request completes) over head-based sampling (decide before). Tail-based catches all errors and slow requests regardless of sampling rate.
+
+### Cost Attribution
+
+Tag observability resources (log buckets, metric storage, trace storage) by service and team for chargeback. Teams that produce excessive observability data should own the cost.
+
+Cross-reference: `finops/SKILL.md` for cost management as an architectural discipline.
+
+**Anti-pattern**: storing debug logs in production hot tier for "just in case." Costs 10x more than warm tier, used 0.1% of the time. Use dynamic log levels for temporary debugging instead.
+
+---
+
+## Synthetic Monitoring
+
+Passive monitoring (metrics, logs) only tells you something is wrong after real users are affected. Synthetic probes detect issues before users do.
+
+### Probe Types
+
+| Probe | Frequency | What It Tests |
+|-------|-----------|---------------|
+| **Availability** | Every 30s | HTTP health check returns 200 |
+| **Functional** | Every 5min | Full business operation end-to-end |
+| **Latency** | Every 1min | Response time from external perspective |
+
+### Functional Probe Example
+
+```typescript
+import { Counter, Histogram } from 'prom-client';
+
+const probeSuccess = new Counter({ name: 'synthetic_probe_success_total', help: 'Successful probes', labelNames: ['probe'] });
+const probeFailure = new Counter({ name: 'synthetic_probe_failure_total', help: 'Failed probes', labelNames: ['probe'] });
+const probeDuration = new Histogram({ name: 'synthetic_probe_duration_seconds', help: 'Probe duration', labelNames: ['probe'] });
+
+async function invoiceProbe(apiClient: ApiClient, testTenantId: string): Promise<void> {
+  const timer = probeDuration.startTimer({ probe: 'invoice-lifecycle' });
+  try {
+    // Create test invoice
+    const invoice = await apiClient.post(`/api/v1/tenants/${testTenantId}/invoices`, {
+      amount: 1, currency: 'EUR', description: 'Synthetic probe — safe to ignore',
+      metadata: { synthetic: true },
+    });
+
+    // Verify it appears in list
+    const list = await apiClient.get(`/api/v1/tenants/${testTenantId}/invoices?filter=id:${invoice.id}`);
+    if (!list.data.some((i: { id: string }) => i.id === invoice.id)) throw new Error('Invoice not in list');
+
+    // Clean up
+    await apiClient.delete(`/api/v1/tenants/${testTenantId}/invoices/${invoice.id}`);
+
+    probeSuccess.inc({ probe: 'invoice-lifecycle' });
+  } catch (error) {
+    probeFailure.inc({ probe: 'invoice-lifecycle' });
+    logger.error({ err: error, probe: 'invoice-lifecycle' }, 'Synthetic probe failed');
+    throw error;
+  } finally {
+    timer();
+  }
+}
+```
+
+### Probe Design Rules
+
+- Use a **dedicated test tenant** — never pollute production data
+- Probes must be **idempotent and self-cleaning** — clean up created resources
+- Tag probe traffic with `synthetic: true` — **exclude from business metrics**
+- Probe failure alerts have **higher priority** than metric-based alerts (they indicate real user impact)
+
+**Anti-pattern**: synthetic probes that pollute production data. Always use a dedicated test tenant with automatic cleanup. Tag synthetic requests so they're excluded from business dashboards and SLO calculations.
+
+---
+
+## Alert Hygiene
+
+Alert fatigue is the #1 killer of on-call effectiveness. Every unnecessary alert trains the team to ignore alerts.
+
+### Alert-to-Incident Ratio
+
+Target: **> 50%** of alerts should lead to human action. Below 30% means too many false positives — the on-call engineer is drowning in noise.
+
+### Quarterly Alert Review
+
+Every alert that hasn't fired in 90 days is reviewed:
+- **Keep**: alert is still relevant, just hasn't triggered
+- **Tune**: threshold is too sensitive or too loose — adjust
+- **Delete**: alert is obsolete, duplicated, or no longer meaningful
+
+### Alert Ownership
+
+Every alert has an owning team. **Unowned alerts are deleted.** If nobody is responsible for responding to an alert, the alert is noise.
+
+### Escalation Tiering
+
+| Tier | Channel | Response Time | Examples |
+|------|---------|---------------|----------|
+| **P1** | Page (PagerDuty/Opsgenie) | Immediate | Service down, data loss risk, SLO breach |
+| **P2** | Slack notification | 30 minutes | Degraded performance, elevated error rate |
+| **P3** | Ticket (Jira/Linear) | Next business day | Non-critical anomaly, capacity warning |
+
+### Runbook Requirement
+
+**No alert without a linked runbook.** An alert without a runbook is noise — the on-call engineer sees a notification with no context on what to do. Every alert annotation must include a `runbook` URL.
+
+### Metrics
+
+Track alert volume per team per week. The trend should be **flat or decreasing**. An increasing trend means either the system is degrading or the alerts need tuning. Either way, action is required.
+
+**Anti-pattern**: alerting on every possible metric "just in case." This creates a wall of noise that hides real incidents. Alert on symptoms (user-facing impact), not on every internal metric fluctuation.
+
+---
+
 ## Anti-Patterns
 
 - **"We'll add monitoring later"**: if it's not observable at launch, incidents will be diagnosed blind
@@ -335,7 +563,7 @@ Continuous profiling replaces the need for "reproduce in staging" — production
 
 ## For Claude Code
 
-When generating services: include OpenTelemetry setup in the entrypoint, structured logging with pino + correlation ID, metrics for the 4 golden signals, spans for business operations. Don't log PII. Configure SLO-based alerts, not threshold-based. Generate observability readiness checklist populated with actual service configuration when preparing for production.
+When generating services: include OpenTelemetry setup in the entrypoint, structured logging with pino + correlation ID, metrics for the 4 golden signals, spans for business operations. Don't log PII. Configure SLO-based alerts, not threshold-based. Generate observability readiness checklist populated with actual service configuration when preparing for production. For event-driven services, propagate W3C trace context in CloudEvents extensions and create child spans in consumers. Apply log tiering (hot/warm/cold) and metrics cardinality budgets to control observability costs. Include synthetic monitoring probes for critical business flows using a dedicated test tenant. Enforce alert hygiene: every alert must have an owner, a linked runbook, and a response tier (P1/P2/P3).
 
 ---
 

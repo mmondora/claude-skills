@@ -6,7 +6,7 @@ description: "Error handling and resilience patterns for distributed systems. Ty
 
 # Error Handling & Resilience Patterns
 
-> **Version**: 1.3.0 | **Last updated**: 2026-02-13
+> **Version**: 1.4.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -306,6 +306,264 @@ logger.error({
 
 ---
 
+## Dead Letter Queue (DLQ) Pattern
+
+In event-driven systems, a poisoned message that consistently fails processing creates an infinite retry loop that blocks the entire queue. DLQ isolates toxic messages so healthy messages continue flowing.
+
+### When to Route to DLQ
+
+Route a message to DLQ when: max retry count exceeded, deserialization failure (message is not valid JSON/protobuf), schema validation failure (message structure doesn't match expected schema). Never route to DLQ on transient errors (network timeout, temporary unavailability) — those should retry with backoff.
+
+### DLQ Message Envelope
+
+The DLQ entry wraps the original message with error metadata for diagnosis and replay:
+
+```typescript
+interface DlqEntry<T = unknown> {
+  originalMessage: T;
+  metadata: {
+    sourceQueue: string;
+    failedAt: string;          // ISO-8601
+    attemptCount: number;
+    maxAttempts: number;
+    lastError: string;
+    errorCode: string;
+    correlationId: string;
+    tenantId: string;
+  };
+}
+
+async function routeToDlq<T>(
+  message: T,
+  sourceQueue: string,
+  error: Error,
+  context: { attemptCount: number; maxAttempts: number; correlationId: string; tenantId: string },
+): Promise<void> {
+  const entry: DlqEntry<T> = {
+    originalMessage: message,
+    metadata: {
+      sourceQueue,
+      failedAt: new Date().toISOString(),
+      attemptCount: context.attemptCount,
+      maxAttempts: context.maxAttempts,
+      lastError: error.message,
+      errorCode: error.name,
+      correlationId: context.correlationId,
+      tenantId: context.tenantId,
+    },
+  };
+
+  await dlqPublisher.publish(entry);
+  dlqDepthGauge.inc({ queue: sourceQueue });
+  logger.warn({ ...entry.metadata }, 'Message routed to DLQ');
+}
+```
+
+### DLQ Monitoring and Reprocessing
+
+- **Alert when DLQ depth > 0** — every DLQ message represents a failure that needs human attention
+- **Dashboard**: DLQ depth over time, message age (oldest unprocessed), messages per source queue
+- **Reprocessing strategy**: manual review → identify and fix root cause → replay from DLQ. Never auto-replay without a fix — you'll just re-poison the queue
+- **Retention**: DLQ messages retained for 14 days minimum (configurable per compliance requirements)
+
+**Anti-pattern**: using DLQ as a trash bin without monitoring. Messages rot silently, representing lost business operations that nobody investigates.
+
+---
+
+## Saga Compensation
+
+In distributed transactions spanning multiple services, when step N fails, steps 1..N-1 must be undone. Without explicit compensation, the system is left in an inconsistent state where some services committed and others didn't.
+
+### Compensation vs Rollback
+
+Compensation is a *semantic undo*, not a database rollback. A payment refund is not the same as deleting the payment record — it's a new business operation that reverses the effect. Compensation must account for the fact that the world may have changed since the original operation.
+
+### Saga Orchestrator
+
+```typescript
+interface SagaStep<TContext> {
+  name: string;
+  execute: (ctx: TContext) => Promise<TContext>;
+  compensate: (ctx: TContext) => Promise<void>;
+}
+
+class SagaOrchestrator<TContext> {
+  private readonly completedSteps: SagaStep<TContext>[] = [];
+
+  constructor(
+    private readonly sagaName: string,
+    private readonly steps: SagaStep<TContext>[],
+    private readonly logger: Logger,
+  ) {}
+
+  async run(initialContext: TContext): Promise<TContext> {
+    let ctx = initialContext;
+
+    for (const step of this.steps) {
+      try {
+        this.logger.info({ saga: this.sagaName, step: step.name }, 'Executing saga step');
+        ctx = await step.execute(ctx);
+        this.completedSteps.push(step);
+      } catch (error) {
+        this.logger.error({ saga: this.sagaName, step: step.name, err: error }, 'Saga step failed, compensating');
+        await this.compensate(ctx);
+        throw new SagaError(this.sagaName, step.name, error instanceof Error ? error : new Error(String(error)));
+      }
+    }
+
+    return ctx;
+  }
+
+  private async compensate(ctx: TContext): Promise<void> {
+    // Compensate in reverse order (LIFO)
+    for (const step of [...this.completedSteps].reverse()) {
+      try {
+        this.logger.info({ saga: this.sagaName, step: step.name }, 'Compensating saga step');
+        await step.compensate(ctx);
+      } catch (error) {
+        // Compensation failure is critical — log and continue compensating remaining steps
+        this.logger.error({ saga: this.sagaName, step: step.name, err: error }, 'Compensation failed — manual intervention required');
+      }
+    }
+  }
+}
+
+class SagaError extends Error {
+  constructor(public readonly saga: string, public readonly failedStep: string, public readonly cause: Error) {
+    super(`Saga '${saga}' failed at step '${failedStep}': ${cause.message}`);
+    this.name = 'SagaError';
+  }
+}
+```
+
+### Usage Example
+
+```typescript
+const createOrderSaga = new SagaOrchestrator('create-order', [
+  {
+    name: 'reserve-inventory',
+    execute: async (ctx) => { ctx.reservationId = await inventoryService.reserve(ctx.items); return ctx; },
+    compensate: async (ctx) => { await inventoryService.releaseReservation(ctx.reservationId); },
+  },
+  {
+    name: 'charge-payment',
+    execute: async (ctx) => { ctx.paymentId = await paymentService.charge(ctx.amount); return ctx; },
+    compensate: async (ctx) => { await paymentService.refund(ctx.paymentId); },
+  },
+  {
+    name: 'create-shipment',
+    execute: async (ctx) => { ctx.shipmentId = await shippingService.create(ctx.address); return ctx; },
+    compensate: async (ctx) => { await shippingService.cancel(ctx.shipmentId); },
+  },
+], logger);
+```
+
+### Key Rules
+
+- **Idempotent compensations**: compensating actions must be safe to retry (use idempotency keys)
+- **Compensation ordering**: always reverse order of execution (LIFO) — undo the last thing first
+- **Persistent execution log**: in production, persist the saga state to a database so compensation can resume after a crash
+- **Timeout**: each step has a timeout; saga-level timeout ensures the entire transaction doesn't hang
+
+**Anti-pattern**: compensations that assume the original state still exists. Between the original operation and the compensation, other operations may have modified the state. Compensations must be defensive and handle "already compensated" or "state changed" gracefully.
+
+---
+
+## Adaptive Load Shedding
+
+Under extreme load, a service must protect itself by rejecting low-priority work before it degrades for everyone. Load shedding is self-preservation — distinct from rate limiting (which is per-client fairness).
+
+### Load Signals
+
+No single signal is sufficient. Combine multiple indicators:
+
+```typescript
+interface LoadSignals {
+  cpuUtilization: number;       // 0-1, from os.loadavg() or cgroup metrics
+  eventLoopLagMs: number;       // measured via setTimeout(0) delta or perf_hooks
+  activeRequests: number;       // currently in-flight requests
+  latencyTrendMs: number;       // rolling p95 latency over last 30s
+}
+
+type Priority = 'critical' | 'normal' | 'deferrable';
+
+function assessLoad(signals: LoadSignals): 'healthy' | 'elevated' | 'critical' {
+  const score =
+    (signals.cpuUtilization > 0.8 ? 1 : 0) +
+    (signals.eventLoopLagMs > 100 ? 1 : 0) +
+    (signals.activeRequests > 500 ? 1 : 0) +
+    (signals.latencyTrendMs > 1000 ? 1 : 0);
+
+  if (score >= 3) return 'critical';
+  if (score >= 2) return 'elevated';
+  return 'healthy';
+}
+```
+
+### Priority Classification
+
+| Priority | Examples | Shed when |
+|----------|----------|-----------|
+| **Critical** | Health checks, authentication, readiness probes | Never |
+| **Normal** | Business operations (CRUD, queries) | Load is `critical` |
+| **Deferrable** | Reports, exports, analytics, batch jobs | Load is `elevated` or `critical` |
+
+### Load Shedding Middleware
+
+```typescript
+import { Counter } from 'prom-client';
+
+const shedCounter = new Counter({
+  name: 'http_requests_shed_total',
+  help: 'Requests shed due to load',
+  labelNames: ['priority', 'endpoint'],
+});
+
+function loadSheddingMiddleware(getSignals: () => LoadSignals, getPriority: (req: Request) => Priority) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const priority = getPriority(req);
+    const load = assessLoad(getSignals());
+
+    if (priority === 'critical') return next(); // never shed critical
+
+    if (load === 'critical' && priority === 'normal') {
+      shedCounter.inc({ priority, endpoint: req.route?.path ?? req.path });
+      logger.warn({ path: req.path, load, priority }, 'Request shed — critical load');
+      return res.status(503).set('Retry-After', '30').json({
+        type: 'https://api.example.com/errors/load-shedding',
+        title: 'Service Overloaded',
+        status: 503,
+        detail: 'Service is under heavy load. Please retry after the indicated delay.',
+      });
+    }
+
+    if (load !== 'healthy' && priority === 'deferrable') {
+      shedCounter.inc({ priority, endpoint: req.route?.path ?? req.path });
+      logger.warn({ path: req.path, load, priority }, 'Request shed — deferrable during elevated load');
+      return res.status(503).set('Retry-After', '60').json({
+        type: 'https://api.example.com/errors/load-shedding',
+        title: 'Service Overloaded',
+        status: 503,
+        detail: 'Deferrable operations are temporarily unavailable. Please retry later.',
+      });
+    }
+
+    next();
+  };
+}
+```
+
+### Response
+
+- HTTP 503 with `Retry-After` header (seconds)
+- Structured log with shed reason, priority, and load state
+- Metric counter for shed requests (by priority and endpoint)
+- Dashboard: shed rate over time, correlated with load signals
+
+**Anti-pattern**: shedding based on a single signal. A CPU spike alone is not enough — a GC pause can spike CPU without actual overload. Combine CPU with event loop lag, active request count, and latency trend for reliable detection.
+
+---
+
 ## Anti-Patterns
 
 - **Empty catch blocks**: swallowing errors silently hides failures until they cascade into larger outages -- every catch must handle or re-throw
@@ -319,7 +577,7 @@ logger.error({
 
 ## For Claude Code
 
-When generating services: define typed error discriminated unions at the domain level, never use raw `throw new Error()` with string messages. Create RFC 7807 error factories for all HTTP error responses. Wrap external dependency calls with circuit breaker and retry logic. Set explicit timeouts on all outbound calls -- never rely on defaults. Implement graceful shutdown with SIGTERM handler, readiness probe integration, and connection draining. Use bulkheads when calling two or more external dependencies. Every resilience mechanism must emit metrics and structured logs. Generate error boundary middleware translating domain errors to Problem Detail responses. Never generate empty catch blocks or catch-and-log-only without re-throwing.
+When generating services: define typed error discriminated unions at the domain level, never use raw `throw new Error()` with string messages. Create RFC 7807 error factories for all HTTP error responses. Wrap external dependency calls with circuit breaker and retry logic. Set explicit timeouts on all outbound calls -- never rely on defaults. Implement graceful shutdown with SIGTERM handler, readiness probe integration, and connection draining. Use bulkheads when calling two or more external dependencies. Every resilience mechanism must emit metrics and structured logs. Generate error boundary middleware translating domain errors to Problem Detail responses. Never generate empty catch blocks or catch-and-log-only without re-throwing. For event-driven services, implement DLQ routing with structured error metadata and monitoring alerts. For distributed transactions, use saga orchestrator with explicit compensation steps in reverse order. Under load, implement adaptive load shedding middleware with multi-signal detection and priority-based rejection.
 
 ---
 

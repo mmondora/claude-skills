@@ -8,11 +8,12 @@ Not a boilerplate. Not a template. A system of conventions, patterns, and guardr
 
 ```
 claude-skills/
-  .claude/skills/                        # 26 Claude Code skills (one per directory)
+  .claude/skills/                        # 27 Claude Code skills (one per directory)
   skills/                                # Symlink → .claude/skills/ (for easy browsing)
   .githooks/pre-commit                   # Auto-updates README.md on commit
+  scripts/install-from-github.sh         # Remote installer (downloads from GitHub)
+  scripts/install-skills.sh              # Local installer (from zip)
   scripts/build-zip.sh                   # Builds versioned distribution zip
-  scripts/install-skills.sh              # Installs skills into a target project
   scripts/generate-readme.sh             # Skills catalog → README.md
   scripts/claude-skills-<version>.zip    # Distribution package
   CLAUDE.md                              # Master configuration
@@ -1403,33 +1404,72 @@ original licenses. See [community/LICENSES.md](community/LICENSES.md) for full d
 
 ## Installation
 
-### Quick Install
+### Install from GitHub (recommended)
+
+No clone needed — downloads skills directly from GitHub into your project:
+
+```bash
+# Download the script
+curl -sLO https://raw.githubusercontent.com/mmondora/claude-skills/main/scripts/install-from-github.sh
+chmod +x install-from-github.sh
+
+# Install all 27 curated skills
+./install-from-github.sh /path/to/your/project
+
+# Install only specific clusters
+./install-from-github.sh /path/to/your/project --cluster security-compliance
+./install-from-github.sh /path/to/your/project --cluster testing-quality --cluster delivery-release
+
+# See available clusters
+./install-from-github.sh --list-clusters
+```
+
+This does three things:
+1. Downloads curated skills from GitHub (only those with a `cluster:` field)
+2. Installs them into `your-project/.claude/skills/`, merging with any existing skills
+3. Adds (or updates) a cluster-grouped skill reference table in `your-project/CLAUDE.md`
+
+#### Available Clusters
+
+| Cluster | Skills |
+|---------|--------|
+| `foundations` | architecture-decision-records, prompt-architect, skill-clusters |
+| `cloud-infrastructure` | infrastructure-as-code, finops, containerization, observability |
+| `security-compliance` | security-by-design, compliance-privacy, authn-authz |
+| `testing-quality` | testing-strategy, testing-implementation, performance-testing, security-testing, quality-gates |
+| `delivery-release` | cicd-pipeline, release-management, feature-management, production-readiness-review, incident-management |
+| `documentation-diagrams` | technical-documentation, diagrams, architecture-communication |
+| `data-architecture` | data-modeling, event-driven-architecture, caching-search |
+| `api-integration` | api-design |
+
+#### Options
+
+```bash
+# Overwrite existing skills (update to latest)
+./install-from-github.sh /path/to/project --force
+
+# Install skills only, don't touch CLAUDE.md
+./install-from-github.sh /path/to/project --no-patch
+
+# Use a different branch
+./install-from-github.sh /path/to/project --branch develop
+
+# Use a fork
+./install-from-github.sh /path/to/project --repo your-user/claude-skills
+```
+
+### Install from Local Clone
+
+If you prefer working from a local clone:
 
 ```bash
 git clone <this-repo> claude-skills
 ./claude-skills/scripts/install-skills.sh /path/to/your/project
 ```
 
-This does two things:
-1. Unpacks all 26 skills into `your-project/.claude/skills/`
-2. Adds a skill reference table to `your-project/CLAUDE.md` (creates it if missing)
-
-### Options
-
-```bash
-# Install skills only, don't touch CLAUDE.md
-./scripts/install-skills.sh /path/to/project --no-patch
-
-# Overwrite existing skills (update to latest)
-./scripts/install-skills.sh /path/to/project --force
-
-# Both
-./scripts/install-skills.sh /path/to/project --force --no-patch
-```
+Options: `--force` (overwrite), `--no-patch` (skip CLAUDE.md), `--no-hooks` (skip pre-commit hook).
 
 ### Manual Install
-
-If you prefer:
 
 ```bash
 # Unzip directly into your project
@@ -1492,11 +1532,12 @@ These skills enforce:
 
 ```
 .claude/skills/              # Claude Code skills (one directory per skill)
-  <skill-name>/SKILL.md
+  <skill-name>/SKILL.md      #   Each skill has YAML frontmatter with name, cluster, description
 .githooks/
   pre-commit                 # Auto-updates README.md before each commit
 scripts/
-  install-skills.sh          # Installer for target projects
+  install-from-github.sh     # Remote installer (downloads from GitHub, supports --cluster)
+  install-skills.sh          # Local installer (from zip)
   generate-readme.sh         # Regenerates skills catalog in README.md
 CLAUDE.md                    # Master configuration
 README.md                    # Auto-updated project documentation
@@ -1507,7 +1548,7 @@ README.md                    # Auto-updated project documentation
 Skills follow the same quality standards they teach:
 
 - Edit skill files in `.claude/skills/<skill-name>/SKILL.md`
-- Each skill has YAML frontmatter with `name` and `description`
+- Each skill has YAML frontmatter with `name`, `cluster`, and `description`
 - Changes follow conventional commits
 - README.md is auto-updated on commit (via `.githooks/pre-commit`)
 - A skill that's too large gets split; one that's too small gets merged

@@ -12,6 +12,7 @@ claude-skills/
   skills/                                # Symlink → .claude/skills/ (for easy browsing)
   .githooks/pre-commit                   # Auto-updates README.md on commit
   scripts/install-from-github.sh         # Remote installer (downloads from GitHub)
+  scripts/update-skills.sh               # Remote updater (pulls latest, updates changed)
   scripts/install-skills.sh              # Local installer (from zip)
   scripts/build-zip.sh                   # Builds versioned distribution zip
   scripts/generate-readme.sh             # Skills catalog → README.md
@@ -1465,6 +1466,39 @@ This does three things:
 ./install-from-github.sh /path/to/project --repo your-user/claude-skills
 ```
 
+### Updating Skills
+
+Already installed skills and want the latest versions? Use the updater:
+
+```bash
+# Update all curated skills to latest
+./scripts/update-skills.sh /path/to/your/project
+
+# Preview what would change without applying
+./scripts/update-skills.sh /path/to/your/project --dry-run
+
+# Update from a specific branch
+./scripts/update-skills.sh /path/to/your/project --branch develop
+```
+
+The updater compares local vs remote content, then:
+- **Installs** skills that are missing locally (`[new]`)
+- **Overwrites** skills whose content has changed (`[updated]`)
+- **Skips** skills that are already up to date (`[current]`)
+- Updates the skill catalog in `CLAUDE.md`
+
+If `.claude/skills/` doesn't exist yet, it performs a fresh install (same as `install-from-github.sh`).
+
+#### Options
+
+```bash
+# Skip CLAUDE.md patching
+./scripts/update-skills.sh /path/to/project --no-patch
+
+# Use a fork
+./scripts/update-skills.sh /path/to/project --repo your-user/claude-skills
+```
+
 ### Install from Local Clone
 
 If you prefer working from a local clone:
@@ -1544,6 +1578,7 @@ These skills enforce:
   pre-commit                 # Auto-updates README.md before each commit
 scripts/
   install-from-github.sh     # Remote installer (downloads from GitHub, supports --cluster)
+  update-skills.sh           # Remote updater (pulls latest, updates changed, --dry-run)
   install-skills.sh          # Local installer (from zip)
   generate-readme.sh         # Regenerates skills catalog in README.md
 CLAUDE.md                    # Master configuration

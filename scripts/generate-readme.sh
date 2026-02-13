@@ -27,7 +27,8 @@ cluster_display() {
     delivery-release)        echo "05	Delivery & Release" ;;
     documentation-diagrams)  echo "06	Documentation & Diagrams" ;;
     data-architecture)       echo "07	Data Architecture" ;;
-    api-integration)         echo "08	API & Integration" ;;
+    architecture-patterns)   echo "08	Architecture & Patterns" ;;
+    ai-applications)         echo "09	AI & Applications" ;;
     *)                       echo "99	Uncategorized" ;;
   esac
 }

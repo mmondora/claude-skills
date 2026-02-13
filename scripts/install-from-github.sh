@@ -45,7 +45,8 @@ cluster_display_name() {
     delivery-release)        echo "Delivery & Release" ;;
     documentation-diagrams)  echo "Documentation & Diagrams" ;;
     data-architecture)       echo "Data Architecture" ;;
-    api-integration)         echo "API & Integration" ;;
+    architecture-patterns)   echo "Architecture & Patterns" ;;
+    ai-applications)         echo "AI & Applications" ;;
     *)                       echo "" ;;
   esac
 }
@@ -59,12 +60,13 @@ cluster_sort_order() {
     delivery-release)        echo "05" ;;
     documentation-diagrams)  echo "06" ;;
     data-architecture)       echo "07" ;;
-    api-integration)         echo "08" ;;
+    architecture-patterns)   echo "08" ;;
+    ai-applications)         echo "09" ;;
     *)                       echo "99" ;;
   esac
 }
 
-ALL_CLUSTERS="foundations cloud-infrastructure security-compliance testing-quality delivery-release documentation-diagrams data-architecture api-integration"
+ALL_CLUSTERS="foundations cloud-infrastructure security-compliance testing-quality delivery-release documentation-diagrams data-architecture architecture-patterns ai-applications"
 
 list_clusters() {
   echo -e "${BOLD}Available clusters:${NC}"

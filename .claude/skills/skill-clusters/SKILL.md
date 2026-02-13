@@ -31,8 +31,10 @@ Skills:
 - `finops/SKILL.md` — Cost modeling, unit economics, budget alerts
 - `containerization/SKILL.md` — Docker multi-stage, distroless, security scanning
 - `observability/SKILL.md` — Logging, metrics, tracing, SLI/SLO/SLA
+- `terraform-test/SKILL.md` — Terraform test files, run blocks, assertions, mocking
+- `terraform-style-guide/SKILL.md` — Terraform HCL style conventions and best practices
 
-**When to load**: cloud setup, infrastructure provisioning, cost optimization, monitoring.
+**When to load**: cloud setup, infrastructure provisioning, cost optimization, monitoring, Terraform.
 
 ### security-compliance — Security & Compliance
 
@@ -40,8 +42,10 @@ Skills:
 - `security-by-design/SKILL.md` — OWASP, supply chain, SBOM, zero trust
 - `compliance-privacy/SKILL.md` — GDPR, data residency, audit trail, retention
 - `authn-authz/SKILL.md` — OAuth2/OIDC, RBAC/ABAC, multi-tenant auth
+- `owasp-security/SKILL.md` — OWASP Top 10:2025, ASVS 5.0, agentic AI security
+- `differential-review/SKILL.md` — Security-focused differential review of code changes
 
-**When to load**: security reviews, compliance assessments, auth implementation.
+**When to load**: security reviews, compliance assessments, auth implementation, code audits.
 
 ### testing-quality — Testing & Quality
 
@@ -51,8 +55,9 @@ Skills:
 - `performance-testing/SKILL.md` — k6 load testing, SLO validation
 - `security-testing/SKILL.md` — SAST, DAST, dependency/container scanning
 - `quality-gates/SKILL.md` — Release-blocking gates, PASS/FAIL verdicts
+- `property-based-testing/SKILL.md` — Property-based testing across languages and smart contracts
 
-**When to load**: test writing, quality assessment, CI gate configuration.
+**When to load**: test writing, quality assessment, CI gate configuration, property-based testing.
 
 ### delivery-release — Delivery & Release
 
@@ -62,8 +67,9 @@ Skills:
 - `feature-management/SKILL.md` — Feature flags, progressive rollout, kill switches
 - `production-readiness-review/SKILL.md` — GO/NO-GO framework, NFR checklist
 - `incident-management/SKILL.md` — Severity levels, postmortems, MTTD/MTTR
+- `chaos-engineer/SKILL.md` — Chaos experiments, failure injection, resilience testing
 
-**When to load**: CI/CD setup, release process, incident response, feature rollout.
+**When to load**: CI/CD setup, release process, incident response, feature rollout, resilience.
 
 ### documentation-diagrams — Documentation & Diagrams
 
@@ -80,15 +86,25 @@ Skills:
 - `data-modeling/SKILL.md` — Schema design, Drizzle migrations, multi-tenant isolation
 - `event-driven-architecture/SKILL.md` — CloudEvents, Pub/Sub, saga patterns
 - `caching-search/SKILL.md` — Redis, PostgreSQL FTS, cache key design
+- `database-optimizer/SKILL.md` — Query optimization, execution plans, index design
 
-**When to load**: database design, event systems, caching strategy.
+**When to load**: database design, event systems, caching strategy, query optimization.
 
-### api-integration — API & Integration
+### architecture-patterns — Architecture & Patterns
 
 Skills:
 - `api-design/SKILL.md` — REST conventions, versioning, pagination, RFC 7807, OpenAPI-first
+- `microservices-architect/SKILL.md` — Service decomposition, DDD, saga patterns, service mesh
+- `legacy-modernizer/SKILL.md` — Strangler fig pattern, incremental migration, tech debt reduction
 
-**When to load**: API design, endpoint implementation, contract definition.
+**When to load**: API design, microservices architecture, system modernization, distributed systems.
+
+### ai-applications — AI & Applications
+
+Skills:
+- `rag-architect/SKILL.md` — RAG systems, vector databases, semantic search, document retrieval
+
+**When to load**: RAG implementation, vector search, knowledge-grounded AI applications.
 
 ---
 
@@ -99,13 +115,14 @@ Use these aliases to match user requests to clusters:
 | Alias (EN) | Alias (IT) | Cluster |
 |------------|------------|---------|
 | foundations, governance, principles | fondamenta, governance, principi | `foundations` |
-| cloud, infrastructure, infra | cloud, infrastruttura | `cloud-infrastructure` |
-| security, compliance, auth | sicurezza, compliance, autenticazione | `security-compliance` |
-| testing, quality, tests | test, qualita, testing | `testing-quality` |
-| delivery, release, deploy, CI/CD | rilascio, deploy, pipeline | `delivery-release` |
+| cloud, infrastructure, infra, terraform | cloud, infrastruttura, terraform | `cloud-infrastructure` |
+| security, compliance, auth, owasp | sicurezza, compliance, autenticazione | `security-compliance` |
+| testing, quality, tests, property-based | test, qualita, testing | `testing-quality` |
+| delivery, release, deploy, CI/CD, chaos | rilascio, deploy, pipeline | `delivery-release` |
 | docs, documentation, diagrams | documentazione, diagrammi | `documentation-diagrams` |
-| data, database, events, caching | dati, database, eventi, cache | `data-architecture` |
-| api, integration, endpoints | api, integrazione, endpoint | `api-integration` |
+| data, database, events, caching, optimizer | dati, database, eventi, cache | `data-architecture` |
+| api, architecture, microservices, legacy | api, architettura, microservizi | `architecture-patterns` |
+| ai, rag, vector, embeddings | ai, rag, vettori, embeddings | `ai-applications` |
 
 ---
 
@@ -118,7 +135,7 @@ When a user requests a cluster (e.g., "load the security skills", "fammi la foun
 3. Apply the combined knowledge when generating output
 4. If the request is ambiguous, list matching clusters and ask for clarification
 
-When a user says "load all skills" or "carica tutto", load all 8 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → api-integration → documentation-diagrams.
+When a user says "load all skills" or "carica tutto", load all 9 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → architecture-patterns → ai-applications → documentation-diagrams.
 
 ---
 

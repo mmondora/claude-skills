@@ -19,7 +19,7 @@ claude-skills/
   CLAUDE.md                              # Master configuration
 ```
 
-## Skills Catalog (1315 skills)
+## Skills Catalog (1318 skills)
 
 <!-- SKILLS_START -->
 
@@ -37,18 +37,23 @@ claude-skills/
 | `finops` | Cloud cost management as an architectural discipline. Unit economics, right-sizing, GCP free tier optimization, budget alerts, serverless-first |
 | `infrastructure-as-code` | Infrastructure as Code with Terraform and Pulumi. State management, modularity, drift detection, secrets handling |
 | `observability` | Logging, metrics, and tracing with OpenTelemetry. Structured JSON logs, 4 golden signals, distributed tracing, SLO-based alerting |
+| `terraform-style-guide` | description: Generate Terraform HCL code following HashiCorp's official style conventions and best practices |
+| `terraform-test` | description: Comprehensive guide for writing and running Terraform tests |
 
 ### Security & Compliance
 | Skill | What it covers |
 |-------|----------------|
 | `authn-authz` | Authentication and authorization patterns for multi-tenant applications. Firebase Auth, JWT tokens, RBAC/ABAC, tenant isolation guards |
 | `compliance-privacy` | GDPR compliance and privacy as architectural constraints. Data minimization, right to be forgotten, data residency, audit trails, retention policies |
+| `differential-review` | description: > |
+| `owasp-security` | description: Use when reviewing code for security vulnerabilities, implementing authentication/authorization, handling user input, or discussing web application security. Covers OWASP Top 10:2025, ASVS 5.0, and Agentic AI security (2026). |
 | `security-by-design` | Security as a design property, not an added layer. OWASP Top 10, supply chain security, secrets management, zero trust |
 
 ### Testing & Quality
 | Skill | What it covers |
 |-------|----------------|
 | `performance-testing` | Performance testing with k6 for SLO validation. Load, stress, soak, and spike tests |
+| `property-based-testing` | description: Provides guidance for property-based testing across multiple languages and smart contracts |
 | `quality-gates` | Formal quality gates that block releases. Tests, static quality, security, performance, reliability, documentation gates with PASS/FAIL verdicts |
 | `security-testing` | Automated security testing in CI. SAST, DAST, dependency scanning, authorization testing, secret detection |
 | `testing-implementation` | Concrete test tooling and patterns for TypeScript and Swift. Vitest, Testing Library, XCTest, Playwright, contract testing |
@@ -57,6 +62,7 @@ claude-skills/
 ### Delivery & Release
 | Skill | What it covers |
 |-------|----------------|
+| `chaos-engineer` | description: Use when designing chaos experiments, implementing failure injection frameworks, or conducting game day exercises. Invoke for chaos experiments, resilience testing, blast radius control, game days, antifragile systems. |
 | `cicd-pipeline` | CI/CD pipeline design with GitHub Actions. Pipeline stages, caching, environments, blue-green and canary deployments |
 | `feature-management` | Feature flags, progressive rollout, A/B testing, and kill switches. Flag types, hygiene, implementation patterns |
 | `incident-management` | Incident response process from detection to postmortem. Severity levels, communication templates, blameless postmortems, incident metrics |
@@ -75,12 +81,23 @@ claude-skills/
 |-------|----------------|
 | `caching-search` | Distributed caching and full-text search patterns. Cache-aside, write-through, invalidation strategies, Redis, PostgreSQL FTS, Elasticsearch |
 | `data-modeling` | Schema design, multi-tenant data isolation, and migration management. Firestore and PostgreSQL patterns, RLS, UUID v7 conventions |
+| `database-operations` | Query optimization, indexing strategies, zero-downtime migrations, and performance analysis for PostgreSQL |
+| `database-optimizer` | description: Use when investigating slow queries, analyzing execution plans, or optimizing database performance. Invoke for index design, query rewrites, configuration tuning, partitioning strategies, lock contention resolution. |
 | `event-driven-architecture` | Event-driven systems with CloudEvents and GCP Pub/Sub. Event design, schema evolution, delivery guarantees, idempotency, eventual consistency |
 
-### API & Integration
+### Architecture & Patterns
 | Skill | What it covers |
 |-------|----------------|
 | `api-design` | API design conventions for REST and GraphQL. Resource naming, versioning, pagination, error responses (RFC 7807), OpenAPI-first workflow, backward compatibility |
+| `error-handling-resilience` | Error handling and resilience patterns for distributed systems. Typed errors, circuit breakers, retry with backoff, bulkheads, timeout budgets, graceful degradation and shutdown |
+| `legacy-modernizer` | description: Use when modernizing legacy systems, implementing incremental migration strategies, or reducing technical debt. Invoke for strangler fig pattern, monolith decomposition, framework upgrades. |
+| `microservices-architect` | description: Use when designing distributed systems, decomposing monoliths, or implementing microservices patterns. Invoke for service boundaries, DDD, saga patterns, event sourcing, service mesh, distributed tracing. |
+| `microservices-patterns` | Microservices patterns for service decomposition, inter-service communication, and operational concerns. Bounded contexts, database per service, CQRS, API gateway, distributed tracing, and resilience |
+
+### AI & Applications
+| Skill | What it covers |
+|-------|----------------|
+| `rag-architect` | description: Use when building RAG systems, vector databases, or knowledge-grounded AI applications requiring semantic search, document retrieval, or context augmentation. |
 
 ### Uncategorized
 | Skill | What it covers |
@@ -293,7 +310,6 @@ claude-skills/
 | `centralstationcrm-automation` | Automate Centralstationcrm tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `certifier-automation` | Automate Certifier tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `changelog-generator` | description: Automatically creates user-facing changelogs from git commits by analyzing commit history, categorizing changes, and transforming technical commits into clear, customer-friendly release notes. Turns hours of manual changelog writing into minutes of automated generation. |
-| `chaos-engineer` | description: Use when designing chaos experiments, implementing failure injection frameworks, or conducting game day exercises. Invoke for chaos experiments, resilience testing, blast radius control, game days, antifragile systems. |
 | `chaser-automation` | Automate Chaser tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `chatbotkit-automation` | Automate Chatbotkit tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `chatfai-automation` | Automate Chatfai tasks via Rube MCP (Composio). Always search tools first for current schemas. |
@@ -385,7 +401,6 @@ claude-skills/
 | `daffy-automation` | Automate Daffy tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `dailybot-automation` | Automate Dailybot tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `dask` | description: Distributed computing for larger-than-RAM pandas/NumPy workflows |
-| `database-optimizer` | description: Use when investigating slow queries, analyzing execution plans, or optimizing database performance. Invoke for index design, query rewrites, configuration tuning, partitioning strategies, lock contention resolution. |
 | `datacommons-client` | description: Work with Data Commons, a platform providing programmatic access to public statistical data from global sources |
 | `datadog-automation` | Automate Datadog tasks via Rube MCP (Composio): query metrics, search logs, manage monitors/dashboards, create events and downtimes. Always search tools first for current schemas. |
 | `datagma-automation` | Automate Datagma tasks via Rube MCP (Composio). Always search tools first for current schemas. |
@@ -411,7 +426,6 @@ claude-skills/
 | `dictionary-api-automation` | Automate Dictionary API tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `diffbot-automation` | Automate Diffbot tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `diffdock` | description: Diffusion-based molecular docking. Predict protein-ligand binding poses from PDB/SMILES, confidence scores, virtual screening, for structure-based drug design. Not for affinity prediction. |
-| `differential-review` | description: > |
 | `digicert-automation` | Automate Digicert tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `digital-ocean-automation` | Automate DigitalOcean tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `discord-automation` | Automate Discord tasks via Rube MCP (Composio): messages, channels, roles, webhooks, reactions. Always search tools first for current schemas. |
@@ -744,7 +758,6 @@ claude-skills/
 | `lead-research-assistant` | description: Identifies high-quality leads for your product or service by analyzing your business, searching for target companies, and providing actionable contact strategies. Perfect for sales, business development, and marketing professionals. |
 | `leadfeeder-automation` | Automate Leadfeeder tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `leadoku-automation` | Automate Leadoku tasks via Rube MCP (Composio). Always search tools first for current schemas. |
-| `legacy-modernizer` | description: Use when modernizing legacy systems, implementing incremental migration strategies, or reducing technical debt. Invoke for strangler fig pattern, monolith decomposition, framework upgrades. |
 | `leiga-automation` | Automate Leiga tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `lemlist-automation` | Automate Lemlist multichannel outreach -- manage campaigns, enroll leads, add personalization variables, export campaign data, and handle unsubscribes via the Composio MCP integration. |
 | `lemon_squeezy-automation` | Automate Lemon Squeezy tasks via Rube MCP (Composio): products, orders, subscriptions, checkouts, and digital sales. Always search tools first for current schemas. |
@@ -811,7 +824,6 @@ claude-skills/
 | `metabolomics-workbench-database` | description: Access NIH Metabolomics Workbench via REST API (4,200+ studies). Query metabolites, RefMet nomenclature, MS/NMR data, m/z searches, study metadata, for metabolomics and biomarker discovery. |
 | `metaphor-automation` | Automate Metaphor tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `mezmo-automation` | Automate Mezmo tasks via Rube MCP (Composio). Always search tools first for current schemas. |
-| `microservices-architect` | description: Use when designing distributed systems, decomposing monoliths, or implementing microservices patterns. Invoke for service boundaries, DDD, saga patterns, event sourcing, service mesh, distributed tracing. |
 | `microsoft_clarity-automation` | Automate Microsoft Clarity tasks via Rube MCP (Composio): session recordings, heatmaps, and user behavior analytics. Always search tools first for current schemas. |
 | `microsoft-clarity-automation` | Automate user behavior analytics with Microsoft Clarity -- export heatmap data, session metrics, and engagement analytics segmented by browser, device, country, source, and more through the Composio Microsoft Clarity integration. |
 | `microsoft-teams-automation` | Automate Microsoft Teams tasks via Rube MCP (Composio): send messages, manage channels, create meetings, handle chats, and search messages. Always search tools first for current schemas. |
@@ -899,7 +911,6 @@ claude-skills/
 | `outline` | Search, read, and manage Outline wiki documents |
 | `outlook-automation` | Automate Outlook tasks via Rube MCP (Composio): emails, calendar, contacts, folders, attachments. Always search tools first for current schemas. |
 | `outlook-calendar-automation` | Automate Outlook Calendar tasks via Rube MCP (Composio): create events, manage attendees, find meeting times, and handle invitations. Always search tools first for current schemas. |
-| `owasp-security` | description: Use when reviewing code for security vulnerabilities, implementing authentication/authorization, handling user input, or discussing web application security. Covers OWASP Top 10:2025, ASVS 5.0, and Agentic AI security (2026). |
 | `owl-protocol-automation` | Automate Owl Protocol tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `page-x-automation` | Automate Page X tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `pagerduty-automation` | Automate PagerDuty tasks via Rube MCP (Composio): manage incidents, services, schedules, escalation policies, and on-call rotations. Always search tools first for current schemas. |
@@ -971,7 +982,6 @@ claude-skills/
 | `project-bubble-automation` | Automate Project Bubble tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `prompt-engineer` | description: Use when designing prompts for LLMs, optimizing model performance, building evaluation frameworks, or implementing advanced prompting techniques like chain-of-thought, few-shot learning, or structured outputs. |
 | `proofly-automation` | Automate Proofly tasks via Rube MCP (Composio). Always search tools first for current schemas. |
-| `property-based-testing` | description: Provides guidance for property-based testing across multiple languages and smart contracts |
 | `protocolsio-integration` | description: Integration with protocols.io API for managing scientific protocols. This skill should be used when working with protocols.io to search, create, update, or publish protocols; manage protocol steps and materials; handle discussions and comments; organize workspaces; upload and manage files; or integrate protocols.io functionality into workflows. Applicable for protocol discovery, collaborative protocol development, experiment tracking, lab protocol management, and scientific documentation. |
 | `provider-actions` | description: Implement Terraform Provider actions using the Plugin Framework |
 | `provider-resources` | description: Implement Terraform Provider resources and data sources using the Plugin Framework |
@@ -1003,7 +1013,6 @@ claude-skills/
 | `radar-automation` | Automate Radar tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `raffle-winner-picker` | description: Picks random winners from lists, spreadsheets, or Google Sheets for giveaways, raffles, and contests. Ensures fair, unbiased selection with transparency. |
 | `rafflys-automation` | Automate Rafflys tasks via Rube MCP (Composio). Always search tools first for current schemas. |
-| `rag-architect` | description: Use when building RAG systems, vector databases, or knowledge-grounded AI applications requiring semantic search, document retrieval, or context augmentation. |
 | `ragic-automation` | Automate Ragic tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `rails-expert` | description: Use when building Rails 7+ web applications with Hotwire, real-time features, or background job processing. Invoke for Active Record optimization, Turbo Frames/Streams, Action Cable, Sidekiq. |
 | `raisely-automation` | Automate Raisely tasks via Rube MCP (Composio). Always search tools first for current schemas. |
@@ -1220,8 +1229,6 @@ claude-skills/
 | `templated-automation` | Automate Templated tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `terraform-engineer` | description: Use when implementing infrastructure as code with Terraform across AWS, Azure, or GCP. Invoke for module development, state management, provider configuration, multi-environment workflows, infrastructure testing. |
 | `terraform-stacks` | description: Comprehensive guide for working with HashiCorp Terraform Stacks |
-| `terraform-style-guide` | description: Generate Terraform HCL code following HashiCorp's official style conventions and best practices |
-| `terraform-test` | description: Comprehensive guide for writing and running Terraform tests |
 | `test-app-automation` | Automate Test App tasks via Rube MCP (Composio). Always search tools first for current schemas. |
 | `test-driven-development` | description: Use when implementing any feature or bugfix, before writing implementation code |
 | `test-master` | description: Use when writing tests, creating test strategies, or building automation frameworks. Invoke for unit tests, integration tests, E2E, coverage analysis, performance testing, security testing. |

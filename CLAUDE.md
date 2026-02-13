@@ -177,6 +177,8 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | FinOps | `finops/SKILL.md` | Cost modeling, unit economics, budget alerts, right-sizing |
 | Containerization | `containerization/SKILL.md` | Docker multi-stage, distroless, security scanning, Docker Compose |
 | Observability | `observability/SKILL.md` | Logging, metrics, tracing, SLI/SLO/SLA, Prometheus alerts |
+| Terraform Test | `terraform-test/SKILL.md` | Test files, run blocks, assertions, mocking providers and data sources |
+| Terraform Style Guide | `terraform-style-guide/SKILL.md` | HCL style conventions, naming, formatting, best practices |
 
 ### `security-compliance` — Security & Compliance
 | Skill | Path | Covers |
@@ -184,6 +186,8 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Security by Design | `security-by-design/SKILL.md` | OWASP, supply chain, dependency management, SBOM/provenance, secrets, zero trust |
 | Compliance & Privacy | `compliance-privacy/SKILL.md` | GDPR, data residency, audit trail, data retention, assessment framework, evidence pack |
 | Authentication & Authorization | `authn-authz/SKILL.md` | OAuth2/OIDC PKCE, RBAC/ABAC, multi-tenant auth, token revocation |
+| OWASP Security | `owasp-security/SKILL.md` | OWASP Top 10:2025, ASVS 5.0, agentic AI security |
+| Differential Review | `differential-review/SKILL.md` | Security-focused differential review of code changes, blast radius analysis |
 
 ### `testing-quality` — Testing & Quality
 | Skill | Path | Covers |
@@ -193,6 +197,7 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Performance Testing | `performance-testing/SKILL.md` | Load testing with k6, SLO validation, capacity planning, performance budgets |
 | Security Testing | `security-testing/SKILL.md` | SAST, DAST (ZAP), dependency/container/IaC scanning, severity policy |
 | Quality Gates | `quality-gates/SKILL.md` | Release-blocking gates, PASS/FAIL verdicts, coverage regression detection |
+| Property-Based Testing | `property-based-testing/SKILL.md` | Property-based testing across languages and smart contracts |
 
 ### `delivery-release` — Delivery & Release
 | Skill | Path | Covers |
@@ -202,6 +207,7 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Feature Management | `feature-management/SKILL.md` | Feature flags, progressive rollout, A/B testing, kill switches, dead flag cleanup |
 | Production Readiness Review | `production-readiness-review/SKILL.md` | GO/NO-GO framework, NFR checklist, PRR output document |
 | Incident Management | `incident-management/SKILL.md` | Severity levels, incident response process, postmortems, MTTD/MTTR |
+| Chaos Engineer | `chaos-engineer/SKILL.md` | Chaos experiments, failure injection, resilience testing, game days |
 
 ### `documentation-diagrams` — Documentation & Diagrams
 | Skill | Path | Covers |
@@ -216,11 +222,19 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Data Modeling & Storage | `data-modeling/SKILL.md` | Schema design, Drizzle migrations, UUID v7, multi-tenant isolation |
 | Event-Driven Architecture | `event-driven-architecture/SKILL.md` | CloudEvents, Pub/Sub, idempotency, schema evolution, saga patterns |
 | Caching & Search | `caching-search/SKILL.md` | Redis, PostgreSQL FTS, cache key design, search indexing pipeline |
+| Database Optimizer | `database-optimizer/SKILL.md` | Query optimization, execution plans, index design, partitioning |
 
-### `api-integration` — API & Integration
+### `architecture-patterns` — Architecture & Patterns
 | Skill | Path | Covers |
 |-------|------|--------|
 | API Design | `api-design/SKILL.md` | REST conventions, versioning, pagination, RFC 7807 errors, OpenAPI-first |
+| Microservices Architect | `microservices-architect/SKILL.md` | Service decomposition, DDD, saga patterns, service mesh, distributed tracing |
+| Legacy Modernizer | `legacy-modernizer/SKILL.md` | Strangler fig pattern, incremental migration, technical debt reduction |
+
+### `ai-applications` — AI & Applications
+| Skill | Path | Covers |
+|-------|------|--------|
+| RAG Architect | `rag-architect/SKILL.md` | RAG systems, vector databases, semantic search, document retrieval |
 
 ---
 
@@ -299,18 +313,23 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `finops` | Cloud cost management as an architectural discipline. |
 | `infrastructure-as-code` | Infrastructure as Code with Terraform and Pulumi. |
 | `observability` | Logging, metrics, and tracing with OpenTelemetry. |
+| `terraform-test` | Comprehensive guide for writing and running Terraform tests. |
+| `terraform-style-guide` | Terraform HCL style conventions and best practices. |
 
 ### Security & Compliance
 | Skill | Description |
 |-------|-------------|
 | `authn-authz` | Authentication and authorization patterns for multi-tenant applications. |
 | `compliance-privacy` | GDPR compliance and privacy as architectural constraints. |
+| `differential-review` | Security-focused differential review of code changes. |
+| `owasp-security` | OWASP Top 10:2025, ASVS 5.0, and agentic AI security. |
 | `security-by-design` | Security as a design property, not an added layer. |
 
 ### Testing & Quality
 | Skill | Description |
 |-------|-------------|
 | `performance-testing` | Performance testing with k6 for SLO validation. |
+| `property-based-testing` | Property-based testing across languages and smart contracts. |
 | `quality-gates` | Formal quality gates that block releases. |
 | `security-testing` | Automated security testing in CI. |
 | `testing-implementation` | Concrete test tooling and patterns for TypeScript and Swift. |
@@ -319,6 +338,7 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 ### Delivery & Release
 | Skill | Description |
 |-------|-------------|
+| `chaos-engineer` | Chaos experiments, failure injection, and resilience testing. |
 | `cicd-pipeline` | CI/CD pipeline design with GitHub Actions. |
 | `feature-management` | Feature flags, progressive rollout, A/B testing, and kill switches. |
 | `incident-management` | Incident response process from detection to postmortem. |
@@ -337,10 +357,18 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 |-------|-------------|
 | `caching-search` | Distributed caching and full-text search patterns. |
 | `data-modeling` | Schema design, multi-tenant data isolation, and migration management. |
+| `database-optimizer` | Query optimization, execution plans, and index design. |
 | `event-driven-architecture` | Event-driven systems with CloudEvents and GCP Pub/Sub. |
 
-### API & Integration
+### Architecture & Patterns
 | Skill | Description |
 |-------|-------------|
 | `api-design` | API design conventions for REST and GraphQL. |
+| `legacy-modernizer` | Strangler fig pattern, incremental migration, and technical debt reduction. |
+| `microservices-architect` | Service decomposition, DDD, saga patterns, and service mesh. |
+
+### AI & Applications
+| Skill | Description |
+|-------|-------------|
+| `rag-architect` | RAG systems, vector databases, semantic search, and document retrieval. |
 <!-- claude-skills:end -->

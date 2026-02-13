@@ -1,5 +1,6 @@
 ---
 name: feature-management
+cluster: delivery-release
 description: "Feature flags, progressive rollout, A/B testing, and kill switches. Flag types, hygiene, implementation patterns. Use when implementing feature toggles, planning gradual rollouts, or adding kill switches for external dependencies."
 ---
 

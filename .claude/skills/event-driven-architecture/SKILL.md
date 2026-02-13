@@ -1,5 +1,6 @@
 ---
 name: event-driven-architecture
+cluster: data-architecture
 description: "Event-driven systems with CloudEvents and GCP Pub/Sub. Event design, schema evolution, delivery guarantees, idempotency, eventual consistency. Use when designing event systems, publishing/consuming events, or implementing async workflows."
 ---
 

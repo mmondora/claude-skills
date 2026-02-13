@@ -1,5 +1,6 @@
 ---
 name: infrastructure-as-code
+cluster: cloud-infrastructure
 description: "Infrastructure as Code with Terraform and Pulumi. State management, modularity, drift detection, secrets handling. Use when provisioning cloud resources, writing Terraform/Pulumi modules, or managing infrastructure configuration."
 ---
 

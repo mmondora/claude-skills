@@ -1,5 +1,6 @@
 ---
 name: finops
+cluster: cloud-infrastructure
 description: "Cloud cost management as an architectural discipline. Unit economics, right-sizing, GCP free tier optimization, budget alerts, serverless-first. Use when making infrastructure decisions, estimating costs, or optimizing cloud spending."
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: architecture-communication
+cluster: documentation-diagrams
 description: "Communicating architectural decisions to stakeholders. Architecture Reviews, ADR presentation, stakeholder-adapted communication. Use when preparing architecture reviews, presenting technical decisions, or writing documentation for different audiences."
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: testing-implementation
+cluster: testing-quality
 description: "Concrete test tooling and patterns for TypeScript and Swift. Vitest, Testing Library, XCTest, Playwright, contract testing. Use when writing unit tests, integration tests, E2E tests, or setting up test infrastructure."
 ---
 

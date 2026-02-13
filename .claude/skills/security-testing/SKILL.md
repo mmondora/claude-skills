@@ -1,5 +1,6 @@
 ---
 name: security-testing
+cluster: testing-quality
 description: "Automated security testing in CI. SAST, DAST, dependency scanning, authorization testing, secret detection. Use when adding security scans to pipelines, writing tenant isolation tests, or configuring vulnerability scanning."
 ---
 

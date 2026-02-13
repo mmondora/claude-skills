@@ -1,5 +1,6 @@
 ---
 name: api-design
+cluster: api-integration
 description: "API design conventions for REST and GraphQL. Resource naming, versioning, pagination, error responses (RFC 7807), OpenAPI-first workflow, backward compatibility. Use when designing APIs, writing endpoint handlers, or defining API contracts."
 ---
 

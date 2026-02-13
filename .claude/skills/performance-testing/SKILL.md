@@ -1,5 +1,6 @@
 ---
 name: performance-testing
+cluster: testing-quality
 description: "Performance testing with k6 for SLO validation. Load, stress, soak, and spike tests. Use when writing performance tests, defining SLO thresholds, or validating system behavior under load."
 ---
 

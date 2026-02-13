@@ -169,29 +169,101 @@ else
   MARKER="<!-- claude-skills:begin -->"
   MARKER_END="<!-- claude-skills:end -->"
 
-  # Build the skills reference block
-  SKILLS_BLOCK="${MARKER}
-## Installed Skills
+  # Cluster slug → display name (bash 3.2 compatible)
+  cluster_display_name() {
+    case "$1" in
+      foundations)              echo "Foundations" ;;
+      cloud-infrastructure)    echo "Cloud & Infrastructure" ;;
+      security-compliance)     echo "Security & Compliance" ;;
+      testing-quality)         echo "Testing & Quality" ;;
+      delivery-release)        echo "Delivery & Release" ;;
+      documentation-diagrams)  echo "Documentation & Diagrams" ;;
+      data-architecture)       echo "Data Architecture" ;;
+      api-integration)         echo "API & Integration" ;;
+      *)                       echo "" ;;
+    esac
+  }
 
-The following Claude Code skills are installed in \`.claude/skills/\`. Claude will auto-load them based on context, or you can invoke them with \`/<skill-name>\`.
+  # Cluster slug → sort order
+  cluster_sort_order() {
+    case "$1" in
+      foundations)              echo "01" ;;
+      cloud-infrastructure)    echo "02" ;;
+      security-compliance)     echo "03" ;;
+      testing-quality)         echo "04" ;;
+      delivery-release)        echo "05" ;;
+      documentation-diagrams)  echo "06" ;;
+      data-architecture)       echo "07" ;;
+      api-integration)         echo "08" ;;
+      *)                       echo "99" ;;
+    esac
+  }
 
-| Skill | Description |
-|-------|-------------|"
-
+  # Collect skill data with cluster info
+  tmpskills=$(mktemp)
   for skill_dir in "$SKILLS_TARGET"/*/; do
     skill_name="$(basename "$skill_dir")"
     [[ "$skill_name" == .* ]] && continue
 
     skill_file="${skill_dir}SKILL.md"
     if [ -f "$skill_file" ]; then
-      # Extract description from frontmatter
+      # Extract cluster and description from frontmatter
+      cluster=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep '^cluster:' | sed 's/^cluster: *//' | head -1)
       desc=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep '^description:' | sed 's/^description: *"//' | sed 's/"$//' | head -1)
-      # Take first sentence only
       short_desc=$(echo "$desc" | sed 's/\. .*/\./')
-      SKILLS_BLOCK="${SKILLS_BLOCK}
-| \`${skill_name}\` | ${short_desc} |"
+
+      if [ -n "$cluster" ]; then
+        sort_order=$(cluster_sort_order "$cluster")
+        display=$(cluster_display_name "$cluster")
+        if [ -n "$display" ]; then
+          printf '%s\t%s\t%s\t%s\n' "$sort_order" "$display" "$skill_name" "$short_desc" >> "$tmpskills"
+          continue
+        fi
+      fi
+      # Unclustered skills go to a flat section
+      printf '%s\t%s\t%s\t%s\n' "99" "__unclustered__" "$skill_name" "$short_desc" >> "$tmpskills"
     fi
   done
+
+  # Sort by cluster order, then skill name
+  sort -t$'\t' -k1,1 -k3,3 "$tmpskills" > "${tmpskills}.sorted"
+
+  # Build the skills reference block grouped by cluster
+  SKILLS_BLOCK="${MARKER}
+## Installed Skills
+
+The following Claude Code skills are installed in \`.claude/skills/\`. Claude will auto-load them based on context, or you can invoke them with \`/<skill-name>\`."
+
+  current_cluster=""
+  unclustered_skills=""
+  while IFS=$'\t' read -r _order cluster skill desc; do
+    if [ "$cluster" = "__unclustered__" ]; then
+      unclustered_skills="${unclustered_skills}
+| \`${skill}\` | ${desc} |"
+      continue
+    fi
+    if [ "$cluster" != "$current_cluster" ]; then
+      SKILLS_BLOCK="${SKILLS_BLOCK}
+
+### ${cluster}
+| Skill | Description |
+|-------|-------------|"
+      current_cluster="$cluster"
+    fi
+    SKILLS_BLOCK="${SKILLS_BLOCK}
+| \`${skill}\` | ${desc} |"
+  done < "${tmpskills}.sorted"
+
+  # Append unclustered skills if any
+  if [ -n "$unclustered_skills" ]; then
+    SKILLS_BLOCK="${SKILLS_BLOCK}
+
+### Other Skills
+| Skill | Description |
+|-------|-------------|${unclustered_skills}"
+  fi
+
+  rm -f "$tmpskills" "${tmpskills}.sorted"
 
   SKILLS_BLOCK="${SKILLS_BLOCK}
 ${MARKER_END}"

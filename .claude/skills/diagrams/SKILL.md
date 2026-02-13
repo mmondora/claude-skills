@@ -1,5 +1,6 @@
 ---
 name: diagrams
+cluster: documentation-diagrams
 description: "Architectural diagrams as code using Mermaid and C4 model. System context, container, component, sequence, ERD, and state diagrams. Use when creating architecture diagrams, documenting flows, or visualizing system design."
 ---
 

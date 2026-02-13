@@ -1,5 +1,6 @@
 ---
 name: incident-management
+cluster: delivery-release
 description: "Incident response process from detection to postmortem. Severity levels, communication templates, blameless postmortems, incident metrics. Use when defining on-call processes, responding to production incidents, or conducting postmortems."
 ---
 

@@ -1,11 +1,12 @@
 ---
 name: prompt-architect
+cluster: foundations
 description: "Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). Provides framework recommendations, asks targeted questions, and structures prompts for maximum effectiveness. Use when users need expert prompt engineering guidance."
 ---
 
 # Prompt Architect
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-11
+> **Version**: 1.2.0 | **Last updated**: 2026-02-13
 
 ## Purpose
 

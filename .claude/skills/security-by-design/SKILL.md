@@ -1,5 +1,6 @@
 ---
 name: security-by-design
+cluster: security-compliance
 description: "Security as a design property, not an added layer. OWASP Top 10, supply chain security, secrets management, zero trust. Use when writing endpoints, handling user input, managing dependencies, or configuring infrastructure."
 ---
 

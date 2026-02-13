@@ -1,5 +1,6 @@
 ---
 name: data-modeling
+cluster: data-architecture
 description: "Schema design, multi-tenant data isolation, and migration management. Firestore and PostgreSQL patterns, RLS, UUID v7 conventions. Use when designing database schemas, writing migrations, or implementing multi-tenant data access."
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: testing-strategy
+cluster: testing-quality
 description: "Testing strategy that produces real confidence. Test pyramid, coverage rules, what to test and what not to test. Use when designing test suites, deciding test types, or setting coverage targets."
 ---
 

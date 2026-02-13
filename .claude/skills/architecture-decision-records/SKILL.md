@@ -1,5 +1,6 @@
 ---
 name: architecture-decision-records
+cluster: foundations
 description: "Architecture Decision Records governance and format. ADR lifecycle, review process, when to write an ADR. Use when making architectural decisions, introducing new technology, or changing integration patterns."
 ---
 

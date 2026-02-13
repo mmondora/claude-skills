@@ -1,5 +1,6 @@
 ---
 name: caching-search
+cluster: data-architecture
 description: "Distributed caching and full-text search patterns. Cache-aside, write-through, invalidation strategies, Redis, PostgreSQL FTS, Elasticsearch. Use when adding caching layers, implementing search, or optimizing read-heavy workloads."
 ---
 

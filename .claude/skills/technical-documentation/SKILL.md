@@ -1,5 +1,6 @@
 ---
 name: technical-documentation
+cluster: documentation-diagrams
 description: "Documentation as a living artifact. README structure, architecture docs, runbooks, API docs, onboarding guides. Use when creating project documentation, writing runbooks, or generating API documentation."
 ---
 

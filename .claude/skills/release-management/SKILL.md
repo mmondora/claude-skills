@@ -1,5 +1,6 @@
 ---
 name: release-management
+cluster: delivery-release
 description: "Release management with automated SemVer, changelog generation, release notes, rollback strategies, and hotfix workflow. Use when configuring releases, writing changelogs, planning rollbacks, or handling hotfixes."
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: observability
+cluster: cloud-infrastructure
 description: "Logging, metrics, and tracing with OpenTelemetry. Structured JSON logs, 4 golden signals, distributed tracing, SLO-based alerting. Use when instrumenting services, setting up monitoring, configuring alerts, or debugging production issues."
 ---
 

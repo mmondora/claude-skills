@@ -1,5 +1,6 @@
 ---
 name: compliance-privacy
+cluster: security-compliance
 description: "GDPR compliance and privacy as architectural constraints. Data minimization, right to be forgotten, data residency, audit trails, retention policies. Use when handling PII, designing audit systems, or implementing data export/deletion."
 ---
 

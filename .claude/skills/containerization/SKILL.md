@@ -1,5 +1,6 @@
 ---
 name: containerization
+cluster: cloud-infrastructure
 description: "Docker best practices for cloud-native applications. Multi-stage builds, distroless images, security scanning, non-root users, Cloud Run orchestration. Use when writing Dockerfiles, configuring container builds, or deploying to Cloud Run/GKE."
 ---
 

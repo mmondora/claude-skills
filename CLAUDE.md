@@ -162,15 +162,15 @@ src/
 
 ## Available Skills
 
-Each skill is a markdown file in `skills/`. Claude Code must read the skill **before** generating output in the corresponding domain.
+Each skill is a markdown file in `skills/`. Claude Code must read the skill **before** generating output in the corresponding domain. Skills are organized into clusters (the `cluster:` field in each skill's frontmatter). Use `skill-clusters/SKILL.md` to load all skills in a cluster at once.
 
-### 01 — Foundations (Principles & Governance)
+### `foundations` — Foundations (Principles & Governance)
 | Skill | Path | Covers |
 |-------|------|--------|
 | Architecture Decision Records | `architecture-decision-records/SKILL.md` | ADR governance, format, lifecycle, review process, filled example |
 | Prompt Architect | `prompt-architect/SKILL.md` | Prompt engineering frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density) |
 
-### 02 — Cloud & Infrastructure
+### `cloud-infrastructure` — Cloud & Infrastructure
 | Skill | Path | Covers |
 |-------|------|--------|
 | Infrastructure as Code | `infrastructure-as-code/SKILL.md` | Terraform/Pulumi, state management, modularity, drift detection |
@@ -178,14 +178,14 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Containerization | `containerization/SKILL.md` | Docker multi-stage, distroless, security scanning, Docker Compose |
 | Observability | `observability/SKILL.md` | Logging, metrics, tracing, SLI/SLO/SLA, Prometheus alerts |
 
-### 03 — Security & Compliance
+### `security-compliance` — Security & Compliance
 | Skill | Path | Covers |
 |-------|------|--------|
 | Security by Design | `security-by-design/SKILL.md` | OWASP, supply chain, dependency management, SBOM/provenance, secrets, zero trust |
 | Compliance & Privacy | `compliance-privacy/SKILL.md` | GDPR, data residency, audit trail, data retention, assessment framework, evidence pack |
 | Authentication & Authorization | `authn-authz/SKILL.md` | OAuth2/OIDC PKCE, RBAC/ABAC, multi-tenant auth, token revocation |
 
-### 04 — Testing & Quality
+### `testing-quality` — Testing & Quality
 | Skill | Path | Covers |
 |-------|------|--------|
 | Testing Strategy | `testing-strategy/SKILL.md` | Test pyramid, coverage rules, test naming, flaky test policy |
@@ -194,7 +194,7 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Security Testing | `security-testing/SKILL.md` | SAST, DAST (ZAP), dependency/container/IaC scanning, severity policy |
 | Quality Gates | `quality-gates/SKILL.md` | Release-blocking gates, PASS/FAIL verdicts, coverage regression detection |
 
-### 05 — Delivery & Release
+### `delivery-release` — Delivery & Release
 | Skill | Path | Covers |
 |-------|------|--------|
 | CI/CD Pipeline | `cicd-pipeline/SKILL.md` | 8-stage CI, CD deploy patterns, matrix builds, GitHub Actions |
@@ -203,21 +203,21 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | Production Readiness Review | `production-readiness-review/SKILL.md` | GO/NO-GO framework, NFR checklist, PRR output document |
 | Incident Management | `incident-management/SKILL.md` | Severity levels, incident response process, postmortems, MTTD/MTTR |
 
-### 06 — Documentation & Diagrams
+### `documentation-diagrams` — Documentation & Diagrams
 | Skill | Path | Covers |
 |-------|------|--------|
 | Technical Documentation | `technical-documentation/SKILL.md` | README/runbook templates, API docs generation, documentation review |
 | Diagrams & Visualization | `diagrams/SKILL.md` | C4, sequence, deployment, ERD, state — Mermaid-first |
 | Architecture Communication | `architecture-communication/SKILL.md` | ADR presentation, Architecture Review, stakeholder communication |
 
-### 07 — Data Architecture
+### `data-architecture` — Data Architecture
 | Skill | Path | Covers |
 |-------|------|--------|
 | Data Modeling & Storage | `data-modeling/SKILL.md` | Schema design, Drizzle migrations, UUID v7, multi-tenant isolation |
 | Event-Driven Architecture | `event-driven-architecture/SKILL.md` | CloudEvents, Pub/Sub, idempotency, schema evolution, saga patterns |
 | Caching & Search | `caching-search/SKILL.md` | Redis, PostgreSQL FTS, cache key design, search indexing pipeline |
 
-### 08 — API & Integration
+### `api-integration` — API & Integration
 | Skill | Path | Covers |
 |-------|------|--------|
 | API Design | `api-design/SKILL.md` | REST conventions, versioning, pagination, RFC 7807 errors, OpenAPI-first |
@@ -283,34 +283,64 @@ The skills themselves follow the principle of evolutionary coherence. Each skill
 <!-- claude-skills:begin -->
 ## Installed Skills
 
-The following Claude Code skills are installed in `.claude/skills/`. Claude will auto-load them based on context, or you can invoke them with `/<skill-name>`.
+The following Claude Code skills are installed in `.claude/skills/`. Claude will auto-load them based on context, or you can invoke them with `/<skill-name>`. Use `/skill-clusters` to load all skills in a cluster at once.
 
+### Foundations
+| Skill | Description |
+|-------|-------------|
+| `architecture-decision-records` | Architecture Decision Records governance and format. |
+| `prompt-architect` | Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). |
+| `skill-clusters` | Skill cluster index and loader. |
+
+### Cloud & Infrastructure
+| Skill | Description |
+|-------|-------------|
+| `containerization` | Docker best practices for cloud-native applications. |
+| `finops` | Cloud cost management as an architectural discipline. |
+| `infrastructure-as-code` | Infrastructure as Code with Terraform and Pulumi. |
+| `observability` | Logging, metrics, and tracing with OpenTelemetry. |
+
+### Security & Compliance
+| Skill | Description |
+|-------|-------------|
+| `authn-authz` | Authentication and authorization patterns for multi-tenant applications. |
+| `compliance-privacy` | GDPR compliance and privacy as architectural constraints. |
+| `security-by-design` | Security as a design property, not an added layer. |
+
+### Testing & Quality
+| Skill | Description |
+|-------|-------------|
+| `performance-testing` | Performance testing with k6 for SLO validation. |
+| `quality-gates` | Formal quality gates that block releases. |
+| `security-testing` | Automated security testing in CI. |
+| `testing-implementation` | Concrete test tooling and patterns for TypeScript and Swift. |
+| `testing-strategy` | Testing strategy that produces real confidence. |
+
+### Delivery & Release
+| Skill | Description |
+|-------|-------------|
+| `cicd-pipeline` | CI/CD pipeline design with GitHub Actions. |
+| `feature-management` | Feature flags, progressive rollout, A/B testing, and kill switches. |
+| `incident-management` | Incident response process from detection to postmortem. |
+| `production-readiness-review` | Production readiness GO/NO-GO framework. |
+| `release-management` | Release management with automated SemVer, changelog generation, release notes, rollback strategies, and hotfix workflow. |
+
+### Documentation & Diagrams
+| Skill | Description |
+|-------|-------------|
+| `architecture-communication` | Communicating architectural decisions to stakeholders. |
+| `diagrams` | Architectural diagrams as code using Mermaid and C4 model. |
+| `technical-documentation` | Documentation as a living artifact. |
+
+### Data Architecture
+| Skill | Description |
+|-------|-------------|
+| `caching-search` | Distributed caching and full-text search patterns. |
+| `data-modeling` | Schema design, multi-tenant data isolation, and migration management. |
+| `event-driven-architecture` | Event-driven systems with CloudEvents and GCP Pub/Sub. |
+
+### API & Integration
 | Skill | Description |
 |-------|-------------|
 | `api-design` | API design conventions for REST and GraphQL. |
-| `architecture-communication` | Communicating architectural decisions to stakeholders. |
-| `architecture-decision-records` | Architecture Decision Records governance and format. |
-| `authn-authz` | Authentication and authorization patterns for multi-tenant applications. |
-| `caching-search` | Distributed caching and full-text search patterns. |
-| `cicd-pipeline` | CI/CD pipeline design with GitHub Actions. |
-| `compliance-privacy` | GDPR compliance and privacy as architectural constraints. |
-| `containerization` | Docker best practices for cloud-native applications. |
-| `data-modeling` | Schema design, multi-tenant data isolation, and migration management. |
-| `diagrams` | Architectural diagrams as code using Mermaid and C4 model. |
-| `event-driven-architecture` | Event-driven systems with CloudEvents and GCP Pub/Sub. |
-| `feature-management` | Feature flags, progressive rollout, A/B testing, and kill switches. |
-| `finops` | Cloud cost management as an architectural discipline. |
-| `incident-management` | Incident response process from detection to postmortem. |
-| `infrastructure-as-code` | Infrastructure as Code with Terraform and Pulumi. |
-| `observability` | Logging, metrics, and tracing with OpenTelemetry. |
-| `performance-testing` | Performance testing with k6 for SLO validation. |
-| `production-readiness-review` | Production readiness GO/NO-GO framework. |
-| `prompt-architect` | Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). |
-| `quality-gates` | Formal quality gates that block releases. |
-| `release-management` | Release management with automated SemVer, changelog generation, release notes, rollback strategies, and hotfix workflow. |
-| `security-by-design` | Security as a design property, not an added layer. |
-| `security-testing` | Automated security testing in CI. |
-| `technical-documentation` | Documentation as a living artifact. |
-| `testing-implementation` | Concrete test tooling and patterns for TypeScript and Swift. |
-| `testing-strategy` | Testing strategy that produces real confidence. |
 <!-- claude-skills:end -->

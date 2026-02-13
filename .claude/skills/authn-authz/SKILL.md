@@ -1,5 +1,6 @@
 ---
 name: authn-authz
+cluster: security-compliance
 description: "Authentication and authorization patterns for multi-tenant applications. Firebase Auth, JWT tokens, RBAC/ABAC, tenant isolation guards. Use when implementing login, protecting endpoints, managing roles, or enforcing tenant boundaries."
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: cicd-pipeline
+cluster: delivery-release
 description: "CI/CD pipeline design with GitHub Actions. Pipeline stages, caching, environments, blue-green and canary deployments. Use when setting up CI/CD, writing GitHub Actions workflows, or configuring deployment pipelines."
 ---
 

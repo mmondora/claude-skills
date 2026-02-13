@@ -1,5 +1,6 @@
 ---
 name: production-readiness-review
+cluster: delivery-release
 description: "Production readiness GO/NO-GO framework. NFR checklist covering availability, scalability, observability, security, compliance. Use before deploying new services or major changes to production."
 ---
 

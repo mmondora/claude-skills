@@ -17,27 +17,18 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SKILLS_DIR="${REPO_ROOT}/.claude/skills"
 README="${REPO_ROOT}/README.md"
 
-# ── Category mapping (bash 3.2 compatible) ──
-get_category() {
+# ── Cluster slug → sort order + display name (bash 3.2 compatible) ──
+cluster_display() {
   case "$1" in
-    architecture-decision-records|prompt-architect)
-      echo "01	Foundations" ;;
-    infrastructure-as-code|finops|containerization|observability)
-      echo "02	Cloud & Infrastructure" ;;
-    security-by-design|compliance-privacy|authn-authz)
-      echo "03	Security & Compliance" ;;
-    testing-strategy|testing-implementation|performance-testing|security-testing|quality-gates)
-      echo "04	Testing & Quality" ;;
-    cicd-pipeline|release-management|feature-management|production-readiness-review|incident-management)
-      echo "05	Delivery & Release" ;;
-    technical-documentation|diagrams|architecture-communication)
-      echo "06	Documentation & Diagrams" ;;
-    data-modeling|event-driven-architecture|caching-search)
-      echo "07	Data Architecture" ;;
-    api-design)
-      echo "08	API & Integration" ;;
-    *)
-      echo "99	Uncategorized" ;;
+    foundations)              echo "01	Foundations" ;;
+    cloud-infrastructure)    echo "02	Cloud & Infrastructure" ;;
+    security-compliance)     echo "03	Security & Compliance" ;;
+    testing-quality)         echo "04	Testing & Quality" ;;
+    delivery-release)        echo "05	Delivery & Release" ;;
+    documentation-diagrams)  echo "06	Documentation & Diagrams" ;;
+    data-architecture)       echo "07	Data Architecture" ;;
+    api-integration)         echo "08	API & Integration" ;;
+    *)                       echo "99	Uncategorized" ;;
   esac
 }
 
@@ -66,9 +57,13 @@ for skill_dir in "$SKILLS_DIR"/*/; do
   # Extract description from YAML frontmatter (single-line)
   description=$(grep '^description:' "$skill_file" | head -1 \
     | sed 's/^description: *"//;s/" *$//' \
-    | sed 's/\. Use [a-z].*//')
+    | sed 's/\. Use [a-z].*//' || true)
 
-  category_line=$(get_category "$skill_name")
+  # Extract cluster from YAML frontmatter
+  cluster=$(grep '^cluster:' "$skill_file" | head -1 | sed 's/^cluster: *//' || true)
+  cluster="${cluster:-uncategorized}"
+
+  category_line=$(cluster_display "$cluster")
   sort_order=$(echo "$category_line" | cut -f1)
   category_name=$(echo "$category_line" | cut -f2)
 

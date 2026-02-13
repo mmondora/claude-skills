@@ -1,5 +1,6 @@
 ---
 name: quality-gates
+cluster: testing-quality
 description: "Formal quality gates that block releases. Tests, static quality, security, performance, reliability, documentation gates with PASS/FAIL verdicts. Use when configuring CI quality checks or evaluating release readiness."
 ---
 

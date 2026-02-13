@@ -1,6 +1,7 @@
 ---
 name: sci-measurement
 description: "Software Carbon Intensity (SCI) measurement per ISO/IEC 21031:2024. SCI formula, energy measurement, carbon intensity data, embodied carbon, functional units, CI integration. Use when measuring carbon emissions, setting sustainability baselines, or tracking environmental impact of software."
+cluster: green-software
 ---
 
 # SCI Measurement

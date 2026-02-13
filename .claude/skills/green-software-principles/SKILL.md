@@ -1,6 +1,7 @@
 ---
 name: green-software-principles
 description: "Green Software Foundation principles as an architectural discipline. Carbon efficiency, energy efficiency, carbon awareness, hardware efficiency, measurement, climate commitments. Use when making any technical decision — every choice has a carbon cost."
+cluster: green-software
 ---
 
 # Green Software Principles

@@ -1,6 +1,7 @@
 ---
 name: sustainability-impact-assessment
 description: "Sustainability governance council for software projects. Impact assessment framework, green PRR checklist, sustainability review process, GSF Maturity Matrix self-assessment, broader impact (social, environmental, economic). Use before major releases, architecture reviews, or when evaluating the broader impact of software decisions."
+cluster: green-software
 ---
 
 # Sustainability Impact Assessment

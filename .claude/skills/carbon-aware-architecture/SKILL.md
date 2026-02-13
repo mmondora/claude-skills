@@ -1,6 +1,7 @@
 ---
 name: carbon-aware-architecture
 description: "Carbon-aware design patterns from the Green Software Foundation. Time shifting, spatial shifting, demand shaping, Carbon Aware SDK, carbon-aware CI/CD, region selection. Use when designing infrastructure, scheduling workloads, or choosing deployment regions."
+cluster: green-software
 ---
 
 # Carbon-Aware Architecture

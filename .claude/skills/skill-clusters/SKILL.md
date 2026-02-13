@@ -106,6 +106,16 @@ Skills:
 
 **When to load**: RAG implementation, vector search, knowledge-grounded AI applications.
 
+### green-software — Green Software & Sustainability
+
+Skills:
+- `green-software-principles/SKILL.md` — GSF principles, carbon/energy/hardware efficiency, measurement
+- `carbon-aware-architecture/SKILL.md` — Time/spatial shifting, demand shaping, Carbon Aware SDK
+- `sci-measurement/SKILL.md` — SCI per ISO/IEC 21031:2024, energy measurement, CI integration
+- `sustainability-impact-assessment/SKILL.md` — Impact assessment, green PRR, GSF Maturity Matrix
+
+**When to load**: sustainability assessment, carbon-aware design, green software, environmental impact.
+
 ---
 
 ## Aliases
@@ -123,6 +133,7 @@ Use these aliases to match user requests to clusters:
 | data, database, events, caching, optimizer | dati, database, eventi, cache | `data-architecture` |
 | api, architecture, microservices, legacy | api, architettura, microservizi | `architecture-patterns` |
 | ai, rag, vector, embeddings | ai, rag, vettori, embeddings | `ai-applications` |
+| green, sustainability, carbon, SCI | green, sostenibilità, carbonio, SCI | `green-software` |
 
 ---
 
@@ -135,7 +146,7 @@ When a user requests a cluster (e.g., "load the security skills", "fammi la foun
 3. Apply the combined knowledge when generating output
 4. If the request is ambiguous, list matching clusters and ask for clarification
 
-When a user says "load all skills" or "carica tutto", load all 9 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → architecture-patterns → ai-applications → documentation-diagrams.
+When a user says "load all skills" or "carica tutto", load all 10 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → architecture-patterns → ai-applications → green-software → documentation-diagrams.
 
 ---
 

@@ -181,6 +181,7 @@ else
       data-architecture)       echo "Data Architecture" ;;
       architecture-patterns)   echo "Architecture & Patterns" ;;
       ai-applications)         echo "AI & Applications" ;;
+      green-software)          echo "Green Software & Sustainability" ;;
       *)                       echo "" ;;
     esac
   }
@@ -197,6 +198,7 @@ else
       data-architecture)       echo "07" ;;
       architecture-patterns)   echo "08" ;;
       ai-applications)         echo "09" ;;
+      green-software)          echo "10" ;;
       *)                       echo "99" ;;
     esac
   }

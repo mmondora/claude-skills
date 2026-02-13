@@ -236,6 +236,14 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 |-------|------|--------|
 | RAG Architect | `rag-architect/SKILL.md` | RAG systems, vector databases, semantic search, document retrieval |
 
+### `green-software` — Green Software & Sustainability
+| Skill | Path | Covers |
+|-------|------|--------|
+| Green Software Principles | `green-software-principles/SKILL.md` | GSF principles, carbon/energy/hardware efficiency, measurement, climate commitments |
+| Carbon-Aware Architecture | `carbon-aware-architecture/SKILL.md` | Time/spatial shifting, demand shaping, Carbon Aware SDK, carbon-aware CI/CD |
+| SCI Measurement | `sci-measurement/SKILL.md` | Software Carbon Intensity per ISO/IEC 21031:2024, energy measurement, CI integration |
+| Sustainability Impact Assessment | `sustainability-impact-assessment/SKILL.md` | Impact assessment framework, green PRR, GSF Maturity Matrix, broader impact |
+
 ---
 
 ## How to Use This Repo

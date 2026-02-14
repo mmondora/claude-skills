@@ -30,7 +30,8 @@ cluster_display() {
     architecture-patterns)   echo "08	Architecture & Patterns" ;;
     ai-applications)         echo "09	AI & Applications" ;;
     mobile)                  echo "10	Mobile & Native" ;;
-    green-software)          echo "11	Green Software & Sustainability" ;;
+    green-software)              echo "11	Green Software & Sustainability" ;;
+    functional-architecture) echo "12	Functional Architecture" ;;
     *)                       echo "99	Uncategorized" ;;
   esac
 }

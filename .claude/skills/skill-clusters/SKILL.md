@@ -6,7 +6,7 @@ description: "Skill cluster index and loader. Maps clusters to their constituent
 
 # Skill Clusters
 
-> **Version**: 1.3.0 | **Last updated**: 2026-02-13
+> **Version**: 1.4.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -130,6 +130,21 @@ Skills:
 
 **When to load**: iOS app review, GUI audit, App Store submission readiness, mobile production audit.
 
+### functional-architecture — Functional Architecture
+
+Skills:
+- `functional-analysis/SKILL.md` — Domain analysis, event storming, use case specification, bounded context mapping
+- `nfr-specification/SKILL.md` — ISO 25010 quality model, quality attribute scenarios, NFR elicitation and prioritization
+- `trade-off-analysis/SKILL.md` — Systematic trade-off evaluation, weighted scoring, reversibility assessment
+- `architecture-risk-assessment/SKILL.md` — Risk register, assumption mapping, failure mode analysis, debt as risk
+- `architecture-review-facilitation/SKILL.md` — Review governance, divulgative/decisional/lightweight reviews
+- `fitness-functions/SKILL.md` — Automated quality attribute guardrails, evolutionary governance
+- `integration-design/SKILL.md` — Cross-boundary communication, contract-first, anti-corruption layers
+- `platform-architecture/SKILL.md` — Platform thinking, capability mapping, Team Topologies, golden paths
+- `architecture-stakeholder-communication/SKILL.md` — Executive briefs, architecture pitches, technical risk translation
+
+**When to load**: functional analysis, architecture governance, NFR specification, trade-off decisions, risk assessment, platform design, stakeholder communication.
+
 ### green-software — Green Software & Sustainability
 
 Skills:
@@ -158,6 +173,7 @@ Use these aliases to match user requests to clusters:
 | api, architecture, microservices, legacy, graphql, websocket, resilience | api, architettura, microservizi, graphql, websocket, resilienza | `architecture-patterns` |
 | ai, rag, vector, embeddings | ai, rag, vettori, embeddings | `ai-applications` |
 | mobile, ios, swift, swiftui, native | mobile, ios, swift, nativo | `mobile` |
+| functional, architecture-governance, NFR, trade-off, risk, platform, fitness | funzionale, governance-architettura, NFR, trade-off, rischio, piattaforma, fitness | `functional-architecture` |
 | green, sustainability, carbon, SCI | green, sostenibilità, carbonio, SCI | `green-software` |
 
 ---
@@ -171,7 +187,7 @@ When a user requests a cluster (e.g., "load the security skills", "fammi la foun
 3. Apply the combined knowledge when generating output
 4. If the request is ambiguous, list matching clusters and ask for clarification
 
-When a user says "load all skills" or "carica tutto", load all 11 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → architecture-patterns → ai-applications → mobile → green-software → documentation-diagrams.
+When a user says "load all skills" or "carica tutto", load all 12 clusters sequentially by priority: foundations → security-compliance → testing-quality → delivery-release → cloud-infrastructure → data-architecture → architecture-patterns → functional-architecture → ai-applications → mobile → green-software → documentation-diagrams.
 
 ---
 

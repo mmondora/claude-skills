@@ -47,6 +47,7 @@ cluster_display_name() {
     data-architecture)       echo "Data Architecture" ;;
     architecture-patterns)   echo "Architecture & Patterns" ;;
     ai-applications)         echo "AI & Applications" ;;
+    mobile)                  echo "Mobile & Native" ;;
     green-software)          echo "Green Software & Sustainability" ;;
     *)                       echo "" ;;
   esac
@@ -63,12 +64,13 @@ cluster_sort_order() {
     data-architecture)       echo "07" ;;
     architecture-patterns)   echo "08" ;;
     ai-applications)         echo "09" ;;
-    green-software)          echo "10" ;;
+    mobile)                  echo "10" ;;
+    green-software)          echo "11" ;;
     *)                       echo "99" ;;
   esac
 }
 
-ALL_CLUSTERS="foundations cloud-infrastructure security-compliance testing-quality delivery-release documentation-diagrams data-architecture architecture-patterns ai-applications green-software"
+ALL_CLUSTERS="foundations cloud-infrastructure security-compliance testing-quality delivery-release documentation-diagrams data-architecture architecture-patterns ai-applications mobile green-software"
 
 list_clusters() {
   echo -e "${BOLD}Available clusters:${NC}"

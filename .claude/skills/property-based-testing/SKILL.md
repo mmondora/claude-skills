@@ -6,7 +6,7 @@ cluster: testing-quality
 
 # Property-Based Testing Guide
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 Use this skill proactively during development when you encounter patterns where PBT provides stronger coverage than example-based tests.
 
@@ -113,6 +113,16 @@ When you detect a high-value pattern while writing tests, **offer PBT as an opti
 - Ignoring type hints (well-typed = easier to test)
 - Overwhelming user with candidates (limit to top 5-10)
 - Being pushy after user declines
+
+## Anti-Patterns
+
+- **Testing with fixed examples only** — example-based tests cover known cases; property-based tests discover unknown edge cases in serialization, validation, and state machines
+- **Overly specific properties** — properties that duplicate the implementation logic provide no value; test invariants (idempotency, roundtrip, oracle) not reimplementations
+- **Ignoring shrinking** — dismissing the minimal failing case produced by shrinking; the shrunk input is the most valuable debugging artifact
+- **Too few iterations** — running 10 iterations instead of 100+; low iteration counts miss rare edge cases that only manifest with specific input combinations
+- **Property-based tests for trivial logic** — using generators for simple validation rules that are better covered by unit tests; focus on code with complex input spaces
+
+---
 
 ## Rationalizations to Reject
 

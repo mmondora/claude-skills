@@ -6,7 +6,7 @@ description: "Concrete test tooling and patterns for TypeScript and Swift. Vites
 
 # Test Implementation
 
-> **Version**: 1.3.0 | **Last updated**: 2026-02-13
+> **Version**: 1.4.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -310,6 +310,16 @@ Advantage: single corpus, inputs interesting for one operation may trigger bugs 
 ### CI Integration
 
 Run fuzz tests for a fixed duration in CI (5-10 minutes). Store corpus in a persistent location (Git LFS or artifact storage) to accumulate interesting inputs across runs.
+
+---
+
+## Anti-Patterns
+
+- **Mocking everything** — tests with 5 mocks and 1 assertion test the mock framework, not the code; prefer real implementations or test containers for integration tests
+- **Test coupling to implementation** — tests that break when refactoring without behavior change; test observable behavior (inputs/outputs), not internal method calls
+- **Shared mutable state** — tests that pass individually but fail when run together; every test must set up and tear down its own state
+- **Snapshot testing as primary strategy** — snapshots catch unintended changes but don't assert correctness; use snapshots for UI regressions, assertions for logic
+- **Flaky test tolerance** — "it sometimes fails" means "it's broken"; quarantine flaky tests immediately, fix within one sprint, delete if unfixed after two sprints
 
 ---
 

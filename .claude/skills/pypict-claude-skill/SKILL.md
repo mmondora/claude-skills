@@ -6,7 +6,7 @@ cluster: "testing-quality"
 
 # Combinatorial Testing
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -257,6 +257,16 @@ IF [UserType] = "Guest" THEN [PaymentMethod] <> "BankTransfer";
 | 9 | BankTransfer | Overnight | Premium | Checkout succeeds, overnight shipping fee applied |
 
 **Summary**: 9 test cases covering all pairwise interactions, 1 constraint applied, reduced from 27 exhaustive combinations.
+
+---
+
+## Anti-Patterns
+
+- **Exhaustive testing instead of pairwise** — testing all combinations of 5 parameters with 4 values each produces 1024 cases; pairwise covers the same interaction space with ~20 cases
+- **Missing constraints** — generating invalid combinations that waste test effort (e.g., HTTP + port 443); model real-world constraints explicitly
+- **Too many parameter values** — listing 20 values per parameter when 4-6 representative values provide equivalent coverage; use equivalence partitioning first
+- **Ignoring negative cases** — only modeling valid values; include boundary values, empty strings, and error conditions as parameter values
+- **Static models** — creating the PICT model once and never updating it; parameters and constraints change as the system evolves
 
 ---
 

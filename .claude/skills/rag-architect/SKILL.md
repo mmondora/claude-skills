@@ -1,91 +1,158 @@
 ---
 name: rag-architect
-description: Use when building RAG systems, vector databases, or knowledge-grounded AI applications requiring semantic search, document retrieval, or context augmentation.
 cluster: ai-applications
-license: MIT
-metadata:
-  author: https://github.com/Jeffallan
-  version: "1.0.0"
-  domain: data-ml
-  triggers: RAG, retrieval-augmented generation, vector search, embeddings, semantic search, vector database, document retrieval, knowledge base, context retrieval, similarity search
-  role: architect
-  scope: system-design
-  output-format: architecture
-  related-skills: python-pro, database-optimizer, monitoring-expert, api-designer
+description: "Retrieval-Augmented Generation system design. Vector databases, embedding models, chunking strategies, hybrid search, reranking, RAG evaluation. Use when building RAG pipelines, selecting vector stores, designing document ingestion, or optimizing retrieval quality."
 ---
 
 # RAG Architect
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
-Senior AI systems architect specializing in Retrieval-Augmented Generation (RAG), vector databases, and knowledge-grounded AI applications.
+## Purpose
 
-## Role Definition
+RAG grounds LLM outputs in factual knowledge — without it, models hallucinate. A well-designed RAG system balances retrieval precision, latency, and cost while maintaining freshness of the knowledge base. Poor RAG design leads to irrelevant context, hallucinated citations, and user distrust.
 
-You are a senior RAG architect with expertise in building production-grade retrieval systems. You specialize in vector databases, embedding models, chunking strategies, hybrid search, retrieval optimization, and RAG evaluation. You design systems that ground LLM outputs in factual knowledge while balancing latency, accuracy, and cost.
+---
 
-## When to Use This Skill
+## Vector Database Selection
 
-- Building RAG systems for chatbots, Q&A, or knowledge retrieval
-- Selecting and configuring vector databases
-- Designing document ingestion and chunking pipelines
-- Implementing semantic search or similarity matching
-- Optimizing retrieval quality and relevance
-- Evaluating and debugging RAG performance
-- Integrating knowledge bases with LLMs
-- Scaling vector search infrastructure
+| Database | Best For | Hosting | Scale | Cost Model |
+|----------|----------|---------|-------|------------|
+| pgvector | Existing PostgreSQL, < 10M vectors | Self-managed | Moderate | Included with PG |
+| Pinecone | Managed, low-ops teams | SaaS | High | Per-vector/query |
+| Qdrant | Self-hosted, filtering-heavy | Self/Cloud | High | Open source |
+| Weaviate | Multi-modal, GraphQL API | Self/Cloud | High | Open source |
+| Chroma | Prototyping, small datasets | Embedded | Low | Free |
 
-## Core Workflow
+**Rule**: start with pgvector if already using PostgreSQL. Move to a dedicated vector DB only when pgvector performance degrades (>100ms p95 at scale). Record the decision in an ADR.
 
-1. **Requirements Analysis** - Identify retrieval needs, latency constraints, accuracy requirements, scale
-2. **Vector Store Design** - Select database, schema design, indexing strategy, sharding approach
-3. **Chunking Strategy** - Document splitting, overlap, semantic boundaries, metadata enrichment
-4. **Retrieval Pipeline** - Embedding selection, query transformation, hybrid search, reranking
-5. **Evaluation & Iteration** - Metrics tracking, retrieval debugging, continuous optimization
+---
 
-## Reference Guide
+## Chunking Strategies
 
-Load detailed guidance based on context:
+Chunking determines retrieval quality more than embedding model choice. Get this wrong and no amount of reranking fixes it.
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| Vector Databases | `references/vector-databases.md` | Comparing Pinecone, Weaviate, Chroma, pgvector, Qdrant |
-| Embedding Models | `references/embedding-models.md` | Selecting embeddings, fine-tuning, dimension trade-offs |
-| Chunking Strategies | `references/chunking-strategies.md` | Document splitting, overlap, semantic chunking |
-| Retrieval Optimization | `references/retrieval-optimization.md` | Hybrid search, reranking, query expansion, filtering |
-| RAG Evaluation | `references/rag-evaluation.md` | Metrics, evaluation frameworks, debugging retrieval |
+```typescript
+interface ChunkConfig {
+  maxTokens: number;      // 256-512 for precise retrieval, 512-1024 for context-rich
+  overlapTokens: number;  // 10-20% of maxTokens
+  strategy: 'fixed' | 'sentence' | 'semantic' | 'recursive';
+}
 
-## Constraints
+interface Chunk {
+  content: string;
+  metadata: {
+    source: string;
+    chunkIndex: number;
+    tokenCount: number;
+    tenantId: string;
+    documentType: string;
+    createdAt: string;
+  };
+}
 
-### MUST DO
-- Evaluate multiple embedding models on your domain data
-- Implement hybrid search (vector + keyword) for production systems
-- Add metadata filters for multi-tenant or domain-specific retrieval
-- Measure retrieval metrics (precision@k, recall@k, MRR, NDCG)
-- Use reranking for top-k results before LLM context
-- Implement idempotent ingestion with deduplication
-- Monitor retrieval latency and quality over time
-- Version embeddings and handle model migration
+// Recursive character splitter with overlap
+function chunkDocument(text: string, config: ChunkConfig): Chunk[] {
+  const separators = ['\n\n', '\n', '. ', ' '];
+  return recursiveSplit(text, separators, config.maxTokens, config.overlapTokens);
+}
+```
 
-### MUST NOT DO
-- Use default chunk size (512) without evaluation
-- Skip metadata enrichment (source, timestamp, section)
-- Ignore retrieval quality metrics in favor of only LLM output
-- Store raw documents without preprocessing/cleaning
-- Use cosine similarity alone for complex domains
-- Deploy without testing on production-like data volume
-- Forget to handle edge cases (empty results, malformed docs)
-- Couple embedding model tightly to application code
+**Decision guide**: fixed-size for uniform documents (code, logs), sentence-boundary for prose, semantic for mixed-format documents, recursive for general-purpose. Always include metadata enrichment (source, timestamp, section, tenant_id) in every chunk.
 
-## Output Templates
+---
 
-When designing RAG architecture, provide:
-1. System architecture diagram (ingestion + retrieval pipelines)
-2. Vector database selection with trade-off analysis
-3. Chunking strategy with examples and rationale
-4. Retrieval pipeline design (query -> results flow)
-5. Evaluation plan with metrics and benchmarks
+## Retrieval Pipeline
 
-## Knowledge Reference
+Hybrid search (vector + BM25 keyword) is the default — pure semantic search misses exact matches (product IDs, error codes, acronyms).
 
-Vector databases (Pinecone, Weaviate, Chroma, Qdrant, Milvus, pgvector), embedding models (OpenAI, Cohere, Sentence Transformers, BGE, E5), chunking algorithms, semantic search, hybrid search, BM25, reranking (Cohere, Cross-Encoder), query expansion, HyDE, metadata filtering, HNSW indexes, quantization, embedding fine-tuning, RAG evaluation frameworks (RAGAS, TruLens)
+```
+Query → Query Expansion → Embedding
+  ├─→ Vector Search (semantic similarity)
+  └─→ BM25 Search (keyword matching)
+       ↓
+  Reciprocal Rank Fusion → Reranker (cross-encoder) → Top-K → LLM Context
+```
+
+```typescript
+interface RetrievalOptions {
+  query: string;
+  tenantId: string;
+  topK: number;
+  filters?: {
+    documentType?: string;
+    dateRange?: { from: Date; to: Date };
+    tags?: string[];
+  };
+  hybridAlpha?: number; // 0 = pure keyword, 1 = pure vector, 0.7 default
+}
+
+async function retrieve(options: RetrievalOptions): Promise<ScoredChunk[]> {
+  const embedding = await embedQuery(options.query);
+
+  const [vectorResults, keywordResults] = await Promise.all([
+    vectorSearch(embedding, {
+      tenantId: options.tenantId,
+      topK: options.topK * 3, // over-fetch for reranking
+      filters: options.filters,
+    }),
+    bm25Search(options.query, {
+      tenantId: options.tenantId,
+      topK: options.topK * 3,
+      filters: options.filters,
+    }),
+  ]);
+
+  const fused = reciprocalRankFusion(vectorResults, keywordResults, options.hybridAlpha ?? 0.7);
+  return rerank(options.query, fused, options.topK);
+}
+```
+
+---
+
+## Embedding Model Selection
+
+| Model | Dimensions | Cost | MTEB Score | Notes |
+|-------|-----------|------|------------|-------|
+| text-embedding-3-small | 1536 | $0.02/1M tokens | ~62 | Good cost/quality ratio |
+| text-embedding-3-large | 3072 | $0.13/1M tokens | ~64 | Best OpenAI option |
+| Cohere embed-v3 | 1024 | $0.10/1M tokens | ~65 | Strong multilingual |
+| BGE-large-en-v1.5 | 1024 | Self-hosted | ~64 | Open source, no API cost |
+| E5-mistral-7b-instruct | 4096 | Self-hosted | ~66 | Best open source, high compute |
+
+**Rule**: always evaluate on your domain data, not just MTEB benchmarks. A smaller model fine-tuned on domain data often beats a larger general model. Never hardcode the embedding model — use an abstraction layer for model swapping.
+
+---
+
+## RAG Evaluation
+
+| Metric | Measures | Target | Tool |
+|--------|----------|--------|------|
+| Precision@K | % of retrieved docs that are relevant | > 80% | Custom / RAGAS |
+| Recall@K | % of relevant docs that are retrieved | > 70% | Custom / RAGAS |
+| MRR | How high the first relevant doc ranks | > 0.7 | Custom |
+| Faithfulness | LLM answer grounded in retrieved context | > 90% | RAGAS / TruLens |
+| Answer relevancy | LLM answer addresses the query | > 85% | RAGAS / TruLens |
+
+Evaluate on a **golden dataset** of query-document-answer triples. Minimum 100 examples for meaningful signal. Re-evaluate after every change to chunking, embeddings, or retrieval logic. Track metrics in CI — retrieval quality is a regression target.
+
+---
+
+## Anti-Patterns
+
+| Anti-Pattern | Why It Fails | Fix |
+|-------------|-------------|-----|
+| Default chunk size without evaluation | 512 tokens is arbitrary; optimal size varies by document type and retrieval use case | Benchmark 256, 512, 1024 on your golden dataset |
+| Vector search only | Pure semantic search misses exact matches (product IDs, error codes, acronyms) | Hybrid search: vector + BM25 with reciprocal rank fusion |
+| Ignoring retrieval metrics | Optimizing only the LLM prompt while retrieval returns irrelevant context | Measure Precision@K, Recall@K, MRR before tuning prompts |
+| Monolithic embeddings | One embedding model for all content types (code, prose, tables) underperforms | Evaluate embedding models per content type; consider separate indexes |
+| No metadata filtering | Searching across all documents for every query wastes compute and hurts precision | Filter by tenant_id, document_type, date_range before search |
+| Stale knowledge base | Ingestion pipeline runs once; knowledge drifts from source of truth | Continuous sync with source documents; track staleness metrics |
+
+---
+
+## For Claude Code
+
+When building RAG systems: use hybrid search (vector + BM25) as default retrieval strategy, never vector-only. Generate chunking pipelines with configurable chunk size and overlap — default 512 tokens with 50 token overlap for prose, 256 tokens for code. Include metadata enrichment (source, timestamp, section, tenant_id) in every chunk. Use pgvector for prototypes and <10M vectors, recommend dedicated vector DB for larger scale. Generate retrieval functions with metadata filtering and reranking step. Include evaluation scripts measuring Precision@K, Recall@K, MRR, and faithfulness. Never hardcode embedding model — use an abstraction layer for model swapping. Always generate a `ChunkConfig` interface and make chunking strategy configurable. Generate idempotent ingestion pipelines with deduplication (content hash). Include structured logging with correlation IDs for retrieval latency monitoring. When generating vector search schemas, include HNSW index configuration with tunable `ef_construction` and `m` parameters.
+
+*Internal references*: `data-modeling/SKILL.md`, `observability/SKILL.md`, `api-design/SKILL.md`, `caching-search/SKILL.md`

@@ -6,7 +6,7 @@ cluster: delivery-release
 
 # Using Git Worktrees
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -178,10 +178,17 @@ Cleanup is typically handled as part of the finishing-a-development-branch proce
 
 ## Anti-Patterns
 
-- Creating worktrees without verifying they are git-ignored
-- Skipping baseline test verification
-- Accumulating worktrees without cleanup
-- Creating worktrees when a simple branch switch would suffice
+- **Unignored worktree directory** — worktree contents appear in `git status` and risk being committed; always verify with `git check-ignore` before creating project-local worktrees
+- **Skipping baseline test verification** — starting work in a worktree with pre-existing test failures makes it impossible to distinguish new bugs from inherited ones
+- **Worktree accumulation** — orphaned worktrees consume disk and create confusion; clean up after merging or discarding the branch
+- **Worktree for trivial changes** — creating a worktree for a 5-minute fix adds overhead; use worktrees when you need to maintain two branches simultaneously
+- **Hardcoded setup commands** — assuming `npm install` works for every project; auto-detect the toolchain from project files (package.json, Cargo.toml, go.mod)
+
+---
+
+## For Claude Code
+
+When creating git worktrees: follow the directory selection priority (existing `.worktrees/` > `worktrees/` > project config > ask user). Always verify project-local directories are git-ignored before creating worktrees — add to `.gitignore` and commit if not. Auto-detect and run dependency installation based on project files (package.json, requirements.txt, Cargo.toml, go.mod). Run the project test suite to establish a clean baseline before starting work. Report the worktree path, branch name, and test status. Reference `finishing-a-development-branch/SKILL.md` for worktree cleanup after completion.
 
 ---
 

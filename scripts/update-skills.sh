@@ -45,7 +45,8 @@ cluster_display_name() {
     architecture-patterns)   echo "Architecture & Patterns" ;;
     ai-applications)         echo "AI & Applications" ;;
     mobile)                  echo "Mobile & Native" ;;
-    green-software)          echo "Green Software & Sustainability" ;;
+    green-software)              echo "Green Software & Sustainability" ;;
+    functional-architecture) echo "Functional Architecture" ;;
     *)                       echo "" ;;
   esac
 }
@@ -63,6 +64,7 @@ cluster_sort_order() {
     ai-applications)         echo "09" ;;
     mobile)                  echo "10" ;;
     green-software)          echo "11" ;;
+    functional-architecture) echo "12" ;;
     *)                       echo "99" ;;
   esac
 }

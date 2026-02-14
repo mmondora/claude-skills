@@ -266,6 +266,19 @@ Each skill is a markdown file in `skills/`. Claude Code must read the skill **be
 | SCI Measurement | `sci-measurement/SKILL.md` | Software Carbon Intensity per ISO/IEC 21031:2024, energy measurement, CI integration |
 | Sustainability Impact Assessment | `sustainability-impact-assessment/SKILL.md` | Impact assessment framework, green PRR, GSF Maturity Matrix, broader impact |
 
+### `functional-architecture` — Functional Architecture
+| Skill | Path | Covers |
+|-------|------|--------|
+| Functional Analysis | `functional-analysis/SKILL.md` | Domain analysis, event storming, use case specification, bounded context mapping |
+| NFR Specification | `nfr-specification/SKILL.md` | ISO 25010 quality model, quality attribute scenarios, NFR elicitation and prioritization |
+| Trade-Off Analysis | `trade-off-analysis/SKILL.md` | Systematic trade-off evaluation, weighted scoring, reversibility assessment |
+| Architecture Risk Assessment | `architecture-risk-assessment/SKILL.md` | Risk register, assumption mapping, failure mode analysis, debt as risk |
+| Architecture Review Facilitation | `architecture-review-facilitation/SKILL.md` | Review governance, divulgative/decisional/lightweight reviews |
+| Fitness Functions | `fitness-functions/SKILL.md` | Automated quality attribute guardrails, evolutionary governance |
+| Integration Design | `integration-design/SKILL.md` | Cross-boundary communication, contract-first, anti-corruption layers |
+| Platform Architecture | `platform-architecture/SKILL.md` | Platform thinking, capability mapping, Team Topologies, golden paths |
+| Architecture Stakeholder Communication | `architecture-stakeholder-communication/SKILL.md` | Executive briefs, architecture pitches, technical risk translation |
+
 ---
 
 ## How to Use This Repo
@@ -431,4 +444,17 @@ The following Claude Code skills are installed in `.claude/skills/`. Claude will
 | `carbon-aware-architecture` | Time/spatial shifting, demand shaping, and Carbon Aware SDK. |
 | `sci-measurement` | Software Carbon Intensity per ISO/IEC 21031:2024 and energy measurement. |
 | `sustainability-impact-assessment` | Impact assessment framework, green PRR, and GSF Maturity Matrix. |
+
+### Functional Architecture
+| Skill | Description |
+|-------|-------------|
+| `functional-analysis` | Functional analysis bridging business requirements to architecture. |
+| `nfr-specification` | Non-functional requirements specification using ISO 25010 quality model. |
+| `trade-off-analysis` | Systematic trade-off analysis for architectural decisions. |
+| `architecture-risk-assessment` | Architectural risk identification, assessment, and mitigation. |
+| `architecture-review-facilitation` | Architecture review governance and facilitation. |
+| `fitness-functions` | Architecture fitness functions as automated quality attribute guardrails. |
+| `integration-design` | Integration design for cross-boundary communication. |
+| `platform-architecture` | Platform thinking and capability mapping. |
+| `architecture-stakeholder-communication` | Strategic architecture communication for non-technical stakeholders. |
 <!-- claude-skills:end -->

@@ -2,14 +2,11 @@
 name: terraform-test
 description: Comprehensive guide for writing and running Terraform tests. Use when creating test files (.tftest.hcl), writing test scenarios with run blocks, validating infrastructure behavior with assertions, mocking providers and data sources, testing module outputs and resource configurations, or troubleshooting Terraform test syntax and execution.
 cluster: cloud-infrastructure
-metadata:
-  copyright: Copyright IBM Corp. 2026
-  version: "0.0.1"
 ---
 
 # Terraform Test
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 Terraform's built-in testing framework enables module authors to validate that configuration updates don't introduce breaking changes. Tests execute against temporary resources, protecting existing infrastructure and state files.
 
@@ -1670,3 +1667,18 @@ For more information:
 - [Terraform Testing Documentation](https://developer.hashicorp.com/terraform/language/tests)
 - [Terraform Test Command Reference](https://developer.hashicorp.com/terraform/cli/commands/test)
 - [Testing Best Practices](https://developer.hashicorp.com/terraform/language/tests/best-practices)
+
+## Anti-Patterns
+
+- **Testing only in apply mode** — every `terraform apply` creates real resources that cost money and take time to destroy; use plan mode for logic validation, reserve apply mode for integration tests
+- **No mock providers** — integration tests hitting real cloud APIs are slow, flaky, and expensive; mock providers for unit tests, real providers only for smoke tests
+- **Asserting on computed values without plan** — checking values that only exist after apply in a plan-mode test; understand which values are available at plan time vs apply time
+- **Missing cleanup** — tests that create resources but fail to destroy them on failure; always verify `terraform destroy` runs even when assertions fail
+- **Hardcoded test values** — test variables that only work in one account or region; parameterize test inputs for portability
+- **Testing implementation instead of behavior** — asserting on internal resource attributes instead of outputs; test what the module promises, not how it's built
+
+## For Claude Code
+
+When generating Terraform tests: create `.tftest.hcl` files in a `tests/` directory with clear naming (`*_unit_test.tftest.hcl` for plan mode, `*_integration_test.tftest.hcl` for apply mode). Use plan mode (`command = plan`) as default for fast, cost-free validation. Use mock providers for unit tests to avoid real API calls. Write assertions that test module outputs and behavior, not internal resource attributes. Include `expect_failures` blocks for validation testing. Always include cleanup — if a test uses apply mode, ensure resources are destroyed. Group related assertions in the same run block, separate independent scenarios into different run blocks. Reference `terraform-style-guide/SKILL.md` for HCL conventions, `infrastructure-as-code/SKILL.md` for module patterns, `testing-strategy/SKILL.md` for test pyramid principles.
+
+*Internal references*: `terraform-style-guide/SKILL.md`, `infrastructure-as-code/SKILL.md`, `testing-strategy/SKILL.md`

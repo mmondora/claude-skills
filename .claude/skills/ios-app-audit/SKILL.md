@@ -6,7 +6,7 @@ description: "Comprehensive production audit for iOS apps covering security, App
 
 # iOS App Audit
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -408,6 +408,16 @@ Impact, Risk Score (0-100), Fix, Effort (S/M/L)
 4. **Prioritize ruthlessly** — P0 means "do not ship without fixing this." Use it sparingly but firmly.
 5. **No diplomatic language** — if something is broken, say it's broken. If something is a security risk, say it clearly.
 6. **Document positives** — good patterns should be called out for replication.
+
+---
+
+## Anti-Patterns
+
+- **Auditing only the happy path** — testing features that work while ignoring error states, offline behavior, and edge cases; audit must cover failure scenarios
+- **Ignoring background behavior** — app works in foreground but crashes on backgrounding, loses state, or drains battery; test lifecycle transitions
+- **Skipping older iOS versions** — testing only on the latest iOS; users on older versions encounter crashes from unavailable APIs
+- **Copy-paste security review** — using a generic checklist without adapting to the app's actual threat model; tailor the audit to the app's data sensitivity and architecture
+- **No performance profiling** — assuming performance is acceptable without Instruments data; memory leaks and CPU spikes only surface under realistic usage patterns
 
 ---
 

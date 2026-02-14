@@ -6,7 +6,7 @@ cluster: "security-compliance"
 
 # Sharp Edges Analysis
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -249,6 +249,12 @@ If a finding seems questionable, return to Phase 2 and probe more edge cases.
 **"It's just a configuration option"** -- Config is code. Wrong configs ship to production. Validate configs and reject dangerous combinations.
 
 **"We need backwards compatibility"** -- Insecure defaults cannot be grandfathered in. Deprecate loudly and force migration.
+
+- **Blaming developers for misuse** — if an API is easy to misuse, the API is the problem; secure-by-default APIs prevent mistakes before they happen
+- **Warning-only documentation** — documenting sharp edges instead of fixing them; prefer API redesign over documentation of footguns
+- **Ignoring error-path ergonomics** — happy path is simple but error handling is complex and error-prone; make the safe path the easy path
+- **Configuration complexity** — requiring 10 config options to be secure when secure should be the zero-config default
+- **Assuming expertise** — designing APIs that only security experts can use correctly; most developers are not security specialists
 
 ---
 

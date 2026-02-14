@@ -6,7 +6,7 @@ description: "API design conventions for REST and GraphQL. Resource naming, vers
 
 # API Design
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -291,6 +291,227 @@ paths:
 
 ---
 
+## API Lifecycle Governance
+
+Without governance, APIs proliferate without oversight, creating inconsistency, duplication, and uncontrolled breaking changes.
+
+### Lifecycle Stages
+
+| Stage | Stability | Header | Rules |
+|-------|-----------|--------|-------|
+| **Draft** | None | `X-API-Stage: draft` | Internal only, no stability guarantees, may change without notice |
+| **Beta** | Low | `X-API-Stage: beta` | External access allowed, deprecation risk, breaking changes with 30-day notice |
+| **Stable** | High | (none needed) | Full backward compatibility commitment, breaking changes require MAJOR bump |
+| **Deprecated** | Frozen | `Deprecation: true`, `Sunset: <date>` | No new features, migration guide required, sunset date published |
+| **Retired** | N/A | N/A | Endpoint returns `410 Gone` with migration pointer |
+
+### Approval Process
+
+New API or breaking change requires an Architecture Review:
+- Lightweight: async review of OpenAPI diff + ADR for rationale
+- Reviewer checklist: naming consistency, backward compatibility, security implications, performance budget
+- For breaking changes: migration guide + consumer notification required before merge
+
+### API Registry
+
+Central catalog of all APIs with: owner team, lifecycle stage, version, SLO targets, consumer list. Can be as simple as a YAML file in the repo:
+
+```yaml
+# api-registry.yml
+apis:
+  - name: user-accounts
+    owner: platform-team
+    stage: stable
+    version: v1
+    slo:
+      latency_p95_ms: 200
+      availability: 99.9%
+    consumers: [invoice-ui, admin-portal, mobile-app]
+  - name: analytics
+    owner: data-team
+    stage: beta
+    version: v1
+    consumers: [admin-portal]
+```
+
+### Consumer Tracking
+
+Know who depends on your API before making changes. Use API keys or client registration to track consumers. Before any breaking change, the registry tells you exactly who will be affected.
+
+**Anti-pattern**: API that stays in "beta" forever to avoid backward compatibility obligations. If an API has production consumers, it's effectively stable — label it as such and commit to compatibility.
+
+---
+
+## Breaking Change Detection in CI
+
+Breaking changes that slip through undetected cause production incidents for API consumers. Automated detection is the only reliable gate.
+
+### Tooling
+
+Use `oasdiff` or `optic` in CI to compare the current OpenAPI spec against the main branch baseline:
+
+```yaml
+# .github/workflows/api-check.yml
+- name: Check for breaking API changes
+  run: |
+    # Compare current spec against main branch
+    git show origin/main:openapi.yaml > /tmp/base-spec.yaml
+    npx oasdiff breaking /tmp/base-spec.yaml openapi.yaml
+  continue-on-error: false
+```
+
+### What Is Detected
+
+| Change | Breaking? | CI Action |
+|--------|-----------|-----------|
+| Removed endpoint | Yes | Block PR |
+| Removed response field | Yes | Block PR |
+| Changed field type | Yes | Block PR |
+| Required field added to request | Yes | Block PR |
+| Changed URL structure | Yes | Block PR |
+| New optional field in response | No | Pass |
+| New optional parameter | No | Pass |
+| New endpoint | No | Pass |
+
+### CI Gate Behavior
+
+Breaking change detected → pipeline fails → developer must either:
+1. **Fix the breaking change** (make it additive instead), or
+2. **Bump MAJOR version** + write ADR + add migration guide + notify consumers
+
+### Schema Evolution for Events
+
+The same principle applies to event schemas. Use JSON Schema diff or Avro compatibility checks in CI. Cross-reference: `event-driven-architecture/SKILL.md`.
+
+**Anti-pattern**: relying on manual review to catch breaking changes. Humans miss subtle breaks like type narrowing (`string` → `string enum`), optional-to-required transitions, and response field removals in nested objects.
+
+---
+
+## Event Schema Versioning
+
+Event schemas evolve just like REST APIs, but without the same tooling discipline. A breaking event schema change is worse than a breaking API change because events are consumed asynchronously — consumers discover the break at processing time, not at call time.
+
+### Compatibility Rules
+
+| Direction | Meaning | Goal |
+|-----------|---------|------|
+| **Backward compatible** | New consumer reads old events | Always required |
+| **Forward compatible** | Old consumer reads new events | Strongly recommended |
+| **Full compatibility** | Both directions | Ideal target |
+
+### Safe vs Breaking Changes
+
+| Change | Safe? | Notes |
+|--------|-------|-------|
+| Add optional field | Yes | Consumers ignore unknown fields |
+| Add new event type | Yes | Consumers subscribe to types they care about |
+| Remove field | **No** | Consumers reading that field will break |
+| Rename field | **No** | Equivalent to remove + add |
+| Change field type | **No** | Deserialization fails |
+| Change event type name | **No** | Consumers won't receive events |
+
+### Schema Registry
+
+Central schema store where every event type has a versioned schema. Options:
+- **Confluent Schema Registry** (for Kafka-based systems)
+- **`schemas/` directory** in the repo with CI validation (lightweight, fits most teams)
+
+```
+schemas/
+  events/
+    invoice.created.v1.json
+    invoice.created.v2.json     # Breaking change → new version
+    invoice.paid.v1.json
+```
+
+### Evolution Strategy
+
+- **Additive-only changes** on the same version (add optional fields, add new event types)
+- **Breaking changes** → new event type name with version suffix (e.g., `invoice.created.v2`)
+- **Migration period**: publish both v1 and v2 during transition. Set sunset date for v1.
+- Consumers migrate to v2 during the migration period. After sunset, stop publishing v1.
+
+Cross-reference: `event-driven-architecture/SKILL.md` for event design patterns and delivery guarantees.
+
+**Anti-pattern**: changing event schema without notifying consumers. This is a silent contract break — consumers discover it when deserialization fails in production, not in CI.
+
+---
+
+## API Performance Contracts
+
+An API without a latency target is an API that will eventually be too slow. Performance must be a contractual property, not an afterthought.
+
+### Per-Endpoint SLO
+
+Every endpoint has a latency target (p95) and throughput target documented in the OpenAPI spec or service README:
+
+```yaml
+# OpenAPI extension for performance SLO
+paths:
+  /api/v1/users/{id}:
+    get:
+      x-performance-slo:
+        latency_p95_ms: 100
+        latency_p99_ms: 500
+        throughput_rps: 1000
+      summary: Get user by ID
+```
+
+### Performance Budget
+
+| Endpoint Type | p95 Latency Budget | Rationale |
+|---------------|-------------------|-----------|
+| Simple CRUD (single entity) | < 100ms | Direct DB lookup, minimal logic |
+| List with pagination | < 200ms | Query + serialization |
+| Aggregation / join | < 500ms | Multiple DB queries or service calls |
+| Report generation | Async (202) | Too slow for synchronous — use long-running operation pattern |
+
+### Monitoring Integration
+
+Performance SLOs feed into alerting. Breach of API performance contract triggers an alert:
+
+```yaml
+# Prometheus alert for API latency SLO breach
+- alert: ApiLatencySloBreached
+  expr: |
+    histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{handler="/api/v1/users/:id"}[5m])) by (le))
+    > 0.1
+  for: 10m
+  labels:
+    severity: warning
+  annotations:
+    summary: "GET /api/v1/users/:id p95 latency exceeds 100ms SLO"
+    runbook: "https://wiki.internal/runbooks/api-latency"
+```
+
+### Contract Testing for Performance
+
+Performance contract tests run during the **nightly gate** (not on every PR — too slow and noisy). Fail the pipeline if p95 latency exceeds the target by >20%:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+
+describe('API Performance Contracts', () => {
+  it('GET /api/v1/users/:id responds within 100ms p95', async () => {
+    const durations: number[] = [];
+    for (let i = 0; i < 100; i++) {
+      const start = performance.now();
+      await fetch(`${BASE_URL}/api/v1/users/user_${i}`);
+      durations.push(performance.now() - start);
+    }
+    durations.sort((a, b) => a - b);
+    const p95 = durations[Math.floor(durations.length * 0.95)];
+    expect(p95).toBeLessThan(120); // 100ms target + 20% tolerance
+  });
+});
+```
+
+Cross-reference: `observability/SKILL.md` for SLO-based alerting, `performance-testing/SKILL.md` for load testing with k6.
+
+**Anti-pattern**: API with no latency target that degrades 10x over 6 months without anyone noticing. By the time users complain, the technical debt is massive.
+
+---
+
 ## Anti-Patterns
 
 - **Verbs in URLs**: `/api/getUsers` — use `GET /api/v1/users` instead
@@ -304,8 +525,8 @@ paths:
 
 ## For Claude Code
 
-When generating APIs: REST with resource-oriented URLs, Zod validation on all inputs, RFC 7807 error responses, paginated collections with cursor support, OpenAPI spec generated from code or code generated from spec. Always include rate limiting middleware. Generate contract tests for every public endpoint. Include `tenantId` in multi-tenant API paths (`/api/v1/tenants/{tenantId}/resources`). Use typed error factories for consistent Problem Detail responses.
+When generating APIs: REST with resource-oriented URLs, Zod validation on all inputs, RFC 7807 error responses, paginated collections with cursor support, OpenAPI spec generated from code or code generated from spec. Always include rate limiting middleware. Generate contract tests for every public endpoint. Include `tenantId` in multi-tenant API paths (`/api/v1/tenants/{tenantId}/resources`). Use typed error factories for consistent Problem Detail responses. Assign lifecycle stages to new APIs (start at Draft or Beta, never skip to Stable without review). Add breaking change detection (oasdiff) to CI pipeline — block PRs that break the OpenAPI contract without a MAJOR version bump. For event schemas, enforce additive-only evolution on the same version and use versioned event type names for breaking changes. Define per-endpoint performance SLOs (p95 latency target) in the OpenAPI spec and wire them to observability alerts.
 
 ---
 
-*Internal references*: `authn-authz/SKILL.md`, `testing-implementation/SKILL.md`, `technical-documentation/SKILL.md`, `security-by-design/SKILL.md`
+*Internal references*: `authn-authz/SKILL.md`, `testing-implementation/SKILL.md`, `technical-documentation/SKILL.md`, `security-by-design/SKILL.md`, `event-driven-architecture/SKILL.md`, `observability/SKILL.md`, `performance-testing/SKILL.md`

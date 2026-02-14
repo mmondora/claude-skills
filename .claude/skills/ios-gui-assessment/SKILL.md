@@ -6,7 +6,7 @@ description: "Audit iOS SwiftUI/UIKit projects for GUI consistency, native Apple
 
 # iOS GUI Assessment
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -270,6 +270,16 @@ CRITICAL, HIGH, LOW — with file:line and description.
 - Prefer SwiftUI semantic colors (`.primary`, `.secondary`) over hardcoded colors.
 - Prefer Dynamic Type text styles (`.body`, `.headline`) over fixed font sizes.
 - Every interactive element must have an accessibility label or be hidden from VoiceOver.
+
+---
+
+## Anti-Patterns
+
+- **Custom controls for standard patterns** — building a custom date picker instead of using UIDatePicker/DatePicker; custom controls miss accessibility, localization, and platform consistency
+- **Ignoring Dynamic Type** — hardcoded font sizes that don't scale with user accessibility settings; use `.font(.body)` and scaled metrics
+- **Screenshot-based testing only** — visual inspection without checking accessibility labels, hit targets, and keyboard navigation; automated accessibility checks catch issues visual review misses
+- **Targeting only the latest iOS** — using availability-checked APIs without fallbacks; apps crash on older versions when `#available` checks are missing
+- **Suppressing deprecation warnings** — silencing compiler warnings about deprecated UIKit APIs instead of migrating; deprecated APIs are removed in future OS versions
 
 ---
 

@@ -6,7 +6,7 @@ description: "Security as a design property, not an added layer. OWASP Top 10, s
 
 # Security by Design
 
-> **Version**: 1.3.0 | **Last updated**: 2026-02-13
+> **Version**: 1.4.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -298,6 +298,17 @@ Maintain explicit assumptions and update when contradicted:
 ### Complexity & Fragility Indicators
 
 Flag for deeper review: functions with many trust assumptions, high branching logic, multi-step state dependencies, cross-module state mutations, error handling that differs from the happy path.
+
+---
+
+## Anti-Patterns
+
+- **Security bolted on** — adding security after development instead of designing it in; retrofit security is incomplete and expensive
+- **Trust the client** — relying on client-side validation for security decisions; all authorization must be server-side
+- **Secrets in code** — hardcoded API keys, tokens, or passwords in source; use Secret Manager with IAM-based access
+- **Overpermissive CORS** — `Access-Control-Allow-Origin: *` in production; restrict to known origins only
+- **Single-layer authorization** — checking permissions only at the API gateway; enforce at gateway, service, and database (RLS) layers
+- **Ignoring supply chain** — `npm install` without audit, review, or lockfile verification; every dependency is an attack surface
 
 ---
 

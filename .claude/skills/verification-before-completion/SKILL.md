@@ -6,7 +6,7 @@ cluster: testing-quality
 
 # Verification Before Completion
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -136,6 +136,12 @@ Apply this gate **before**:
 - Committing without running the project's check/test commands
 - Skipping the red phase of a regression test
 - Reporting partial verification as full verification
+
+---
+
+## For Claude Code
+
+Before any completion claim: run the specific verification command (test suite, linter, build) in the current session — never rely on previous runs or assumptions. Read the full output including exit code and failure count. For regression tests, verify the red-green cycle (test must fail without fix, pass with fix). For delegated work from subagents, independently verify by checking the diff and running tests. Never use "should work", "looks correct", or "confident" as substitutes for execution evidence. State the actual verification output when reporting status.
 
 ---
 

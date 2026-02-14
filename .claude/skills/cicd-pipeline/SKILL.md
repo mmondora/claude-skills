@@ -6,7 +6,7 @@ description: "CI/CD pipeline design with GitHub Actions. Pipeline stages, cachin
 
 # CI/CD Pipeline
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -252,6 +252,17 @@ Tag with both SHA and semver: `image:abc123` (immutable) and `image:v1.4.0` (hum
 **Development**: local (docker-compose with GCP emulators) or personal cloud environment. **Staging**: production replica with synthetic data. Automatic deploy on merge to main. Used for integration test, performance test, UAT. **Production**: controlled deploy (manual or canary). Active monitoring. Rollback available.
 
 No PREPROD, no DEMO as permanent environments. For demos: feature flags + staging. For pre-prod validation: canary in production.
+
+---
+
+## Anti-Patterns
+
+- **Manual deployments to production** — human error and inconsistency; every production deployment must go through the automated pipeline
+- **No caching in CI** — builds take 15+ minutes because dependencies are downloaded every time; cache node_modules, Docker layers, and build artifacts
+- **Deploying without smoke tests** — green CI doesn't guarantee production works; run health checks and smoke tests post-deploy
+- **Single-stage pipeline** — build, test, and deploy in one job; failures late in the pipeline waste the entire run time
+- **Secrets in workflow files** — hardcoded credentials in YAML; use GitHub encrypted secrets or external secret managers
+- **No rollback strategy** — deploying without knowing how to revert; every deployment must have a documented rollback procedure
 
 ---
 

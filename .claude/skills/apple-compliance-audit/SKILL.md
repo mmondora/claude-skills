@@ -6,7 +6,7 @@ description: "Apple App Store compliance audit for iOS apps covering Info.plist,
 
 # Apple Compliance Audit
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-14
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -419,6 +419,16 @@ This audit is based on STATIC code analysis. It cannot verify:
 - Dynamically generated content (AI, user-generated content)
 
 Complement this audit with: device testing on all target models, Developer Portal verification, App Store Connect verification, Xcode Accessibility Inspector, Thread Sanitizer, and Address Sanitizer.
+
+---
+
+## Anti-Patterns
+
+- **Last-minute compliance check** — running the audit days before submission; compliance issues in Info.plist, entitlements, or privacy manifests require code changes that need testing
+- **Ignoring privacy manifest requirements** — missing NSPrivacyAccessedAPITypes for required reason APIs; Apple rejects apps that use covered APIs without declared reasons
+- **Hardcoded entitlements** — copying entitlements from Stack Overflow without understanding scope; each entitlement must match actual app capabilities
+- **Missing App Transport Security exceptions** — using NSAllowsArbitraryLoads instead of per-domain exceptions; Apple requires justification for each ATS exception
+- **Skipping accessibility audit** — assuming VoiceOver works without testing; missing accessibility labels and traits cause rejection and exclude users
 
 ---
 

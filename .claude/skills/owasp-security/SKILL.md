@@ -6,7 +6,7 @@ cluster: security-compliance
 
 # OWASP Security Best Practices Skill
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 Apply these security standards when writing or reviewing code.
 
@@ -523,6 +523,16 @@ When reviewing any language, think like a senior security researcher:
 
 **For any language not listed:** Research its specific CWE patterns, CVE history, and known footguns. The examples above are entry points, not complete coverage.
 
+## Anti-Patterns
+
+- **Security as a phase** — treating security as a pre-release gate instead of a design constraint; vulnerabilities baked into architecture are expensive to fix later
+- **Framework trust without verification** — assuming the framework handles all security; every framework has escape hatches (`dangerouslySetInnerHTML`, raw SQL) that bypass protections
+- **Generic vulnerability reports** — "possible SQL injection" without line numbers, attack vectors, or proof-of-concept; unactionable findings get ignored
+- **Checklist compliance over threat modeling** — following OWASP Top 10 mechanically without analyzing the specific application's threat surface; checklists complement but don't replace threat models
+- **Ignoring agentic AI risks** — applying traditional web security to AI agents without considering prompt injection, tool abuse, and privilege escalation specific to agentic systems
+
+---
+
 ## When to Apply This Skill
 
 Use this skill when:
@@ -536,3 +546,7 @@ Use this skill when:
 - Handling errors and exceptions
 - Working with third-party dependencies
 - **Working in any language** - apply the deep analysis mindset above
+
+---
+
+*Internal references*: `security-by-design/SKILL.md`, `security-testing/SKILL.md`, `authn-authz/SKILL.md`, `differential-review/SKILL.md`

@@ -1,89 +1,152 @@
 ---
 name: chaos-engineer
-description: Use when designing chaos experiments, implementing failure injection frameworks, or conducting game day exercises. Invoke for chaos experiments, resilience testing, blast radius control, game days, antifragile systems.
 cluster: delivery-release
-license: MIT
-metadata:
-  author: https://github.com/Jeffallan
-  version: "1.0.0"
-  domain: devops
-  triggers: chaos engineering, resilience testing, failure injection, game day, blast radius, chaos experiment, fault injection, Chaos Monkey, Litmus Chaos, antifragile
-  role: specialist
-  scope: implementation
-  output-format: code
-  related-skills: sre-engineer, devops-engineer, kubernetes-specialist
+description: "Chaos engineering for resilience validation. Experiment design, blast radius control, failure injection, game days, continuous chaos in CI/CD. Use when designing chaos experiments, validating resilience assumptions, conducting game days, or integrating failure injection into pipelines."
 ---
 
 # Chaos Engineer
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
-Senior chaos engineer with deep expertise in controlled failure injection, resilience testing, and building systems that get stronger under stress.
+## Purpose
 
-## Role Definition
+Systems fail in production — chaos engineering proves they recover. Without controlled failure injection, teams discover their resilience gaps during real incidents instead of planned experiments. Chaos engineering shifts failure discovery left, from incident response to proactive validation.
 
-You are a senior chaos engineer with 10+ years of experience in reliability engineering and resilience testing. You specialize in designing and executing controlled chaos experiments, managing blast radius, and building organizational resilience through scientific experimentation and continuous learning from controlled failures.
+---
 
-## When to Use This Skill
+## Experiment Design
 
-- Designing and executing chaos experiments
-- Implementing failure injection frameworks (Chaos Monkey, Litmus, etc.)
-- Planning and conducting game day exercises
-- Building blast radius controls and safety mechanisms
-- Setting up continuous chaos testing in CI/CD
-- Improving system resilience based on experiment findings
+The scientific method applied to resilience. Every experiment requires: a **falsifiable hypothesis** ("the system continues serving \<SLO\> when \<failure\>"), **steady-state definition** with numeric thresholds, **blast radius boundary**, and **abort conditions** that trigger automatic rollback.
 
-## Core Workflow
+```yaml
+# chaos-experiment.yaml
+experiment:
+  name: payment-service-latency
+  hypothesis: "Order service degrades gracefully when payment service latency exceeds 2s"
+  steady_state:
+    metric: order_success_rate
+    threshold: ">= 99.5%"
+  method:
+    type: network-delay
+    target: payment-service
+    delay_ms: 3000
+    duration: 5m
+  blast_radius:
+    environment: staging
+    traffic_percentage: 10
+  abort_conditions:
+    - metric: error_rate
+      threshold: "> 5%"
+    - metric: p99_latency
+      threshold: "> 10s"
+  rollback:
+    type: automatic
+    trigger: any_abort_condition
+```
 
-1. **System Analysis** - Map architecture, dependencies, critical paths, and failure modes
-2. **Experiment Design** - Define hypothesis, steady state, blast radius, and safety controls
-3. **Execute Chaos** - Run controlled experiments with monitoring and quick rollback
-4. **Learn & Improve** - Document findings, implement fixes, enhance monitoring
-5. **Automate** - Integrate chaos testing into CI/CD for continuous resilience
+**Workflow**: map architecture and dependencies, identify weakest assumptions, write hypothesis, define steady state, set blast radius, execute with monitoring, analyze results, implement fixes, repeat.
 
-## Reference Guide
+---
 
-Load detailed guidance based on context:
+## Failure Injection Patterns
 
-| Topic | Reference | Load When |
-|-------|-----------|-----------|
-| Experiments | `references/experiment-design.md` | Designing hypothesis, blast radius, rollback |
-| Infrastructure | `references/infrastructure-chaos.md` | Server, network, zone, region failures |
-| Kubernetes | `references/kubernetes-chaos.md` | Pod, node, Litmus, chaos mesh experiments |
-| Tools & Automation | `references/chaos-tools.md` | Chaos Monkey, Gremlin, Pumba, CI/CD integration |
-| Game Days | `references/game-days.md` | Planning, executing, learning from game days |
+| Failure Type | Tool | Target | What It Validates |
+|---|---|---|---|
+| Pod kill | Litmus/Chaos Mesh | Kubernetes pods | Self-healing, replica recovery |
+| Network delay | tc/toxiproxy | Service links | Timeout handling, circuit breakers |
+| CPU stress | stress-ng | Node/container | Autoscaling, throttling behavior |
+| DNS failure | CoreDNS manipulation | Service discovery | Fallback, caching, retries |
+| Zone outage | Cloud provider API | Availability zone | Multi-AZ redundancy |
+| Disk fill | dd/fallocate | Node filesystem | Alerting, log rotation, eviction |
+| Dependency kill | Process termination | External services | Graceful degradation, fallbacks |
 
-## Constraints
+Choose injection method based on the resilience property under test. Start with the simplest failure that validates the hypothesis — escalate complexity only after simpler experiments pass.
 
-### MUST DO
-- Define steady state metrics before experiments
-- Document hypothesis clearly
-- Control blast radius (start small, isolate impact)
-- Enable automated rollback under 30 seconds
-- Monitor continuously during experiments
-- Ensure zero customer impact initially
-- Capture all learnings and share
-- Implement improvements from findings
+---
 
-### MUST NOT DO
-- Run experiments without hypothesis
-- Skip blast radius controls
-- Test in production without safety nets
-- Ignore monitoring during experiments
-- Run multiple variables simultaneously (initially)
-- Forget to document learnings
-- Skip team communication
-- Leave systems in degraded state
+## Game Days
 
-## Output Templates
+Structured team exercises that validate both **technical resilience** and **human response**.
 
-When implementing chaos engineering, provide:
-1. Experiment design document (hypothesis, metrics, blast radius)
-2. Implementation code (failure injection scripts/manifests)
-3. Monitoring setup and alert configuration
-4. Rollback procedures and safety controls
-5. Learning summary and improvement recommendations
+**Planning checklist**:
+1. Define scope — which systems, which failure scenarios, which teams participate
+2. Establish success criteria — SLOs that must hold, maximum response time for human actions
+3. Pre-brief all participants — share experiment plan, communication channels, escalation paths
+4. Verify monitoring and alerting — dashboards, on-call routing, war room setup
+5. Confirm rollback mechanisms — automated and manual, tested before game day
+6. Schedule during business hours — never Friday afternoon; ensure key personnel availability
 
-## Knowledge Reference
+**Execution protocol**: announce start to all stakeholders, inject failures per plan, observe system and human response, record timeline of events and decisions, abort if any safety boundary is crossed, announce end clearly.
 
-Chaos Monkey, Litmus Chaos, Chaos Mesh, Gremlin, Pumba, toxiproxy, chaos experiments, blast radius control, game days, failure injection, network chaos, infrastructure resilience, Kubernetes chaos, organizational resilience, MTTR reduction, antifragile systems
+**Post-game retrospective**: timeline reconstruction, gap analysis (what surprised us?), action items with owners and deadlines, update runbooks and monitoring based on findings, share results organization-wide.
+
+---
+
+## Continuous Chaos in CI/CD
+
+Embed chaos experiments in the delivery pipeline for ongoing resilience validation. Run against staging on schedule; gate production deploys on chaos test results.
+
+```yaml
+# .github/workflows/chaos.yml
+name: Chaos Tests
+on:
+  schedule:
+    - cron: '0 3 * * 1-5'  # Weekdays 3am
+jobs:
+  chaos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply chaos experiment
+        run: |
+          kubectl apply -f chaos-experiments/
+          sleep 300  # 5min experiment duration
+      - name: Validate steady state
+        run: |
+          RATE=$(curl -s "$PROMETHEUS/api/v1/query?query=rate(http_requests_total{status=~'5..'}[5m])" | jq '.data.result[0].value[1]')
+          if (( $(echo "$RATE > 0.01" | bc -l) )); then
+            echo "FAIL: Error rate $RATE exceeds 1% during chaos"
+            exit 1
+          fi
+      - name: Cleanup
+        if: always()
+        run: kubectl delete -f chaos-experiments/
+```
+
+**Integration points**: scheduled runs for regression, pre-deploy gates for critical services, post-deploy smoke chaos for canary validation.
+
+---
+
+## Maturity Model
+
+| Level | Name | Characteristics |
+|---|---|---|
+| 1 | Ad-hoc | Manual failure injection during incidents; no formal experiments; heroic debugging |
+| 2 | Repeatable | Documented experiment specs; game days quarterly; staging-only; manual execution |
+| 3 | Automated | Chaos in CI/CD; automated steady-state validation; blast radius controls enforced |
+| 4 | Continuous | Production chaos with fine-grained controls; chaos results feed architecture decisions; experiments run daily |
+
+Target level 3 minimum for production systems. Level 4 requires mature observability and incident management processes.
+
+---
+
+## Anti-Patterns
+
+| Anti-Pattern | Why It Fails |
+|---|---|
+| **Chaos without hypothesis** | Random failure injection without expected outcome is sabotage, not science; every experiment needs a falsifiable hypothesis |
+| **Production chaos without safety nets** | Running experiments without abort conditions, rollback, or monitoring turns chaos into an incident |
+| **Testing only happy paths** | Injecting failures the system already handles proves nothing; target gaps you suspect but haven't validated |
+| **Skipping blast radius control** | Starting with 100% traffic or production-wide experiments; always start staging, then 1% canary, then expand |
+| **Ignoring the human factor** | Testing only technical resilience while ignoring runbook quality, team response time, and communication during failure |
+| **One-time game days** | Chaos engineering is continuous, not annual; embed experiments in CI/CD for ongoing validation |
+
+---
+
+## For Claude Code
+
+When designing chaos experiments: always define a falsifiable hypothesis before implementation, specify steady-state metrics with numeric thresholds, and include automatic abort conditions. Generate Litmus ChaosEngine manifests for Kubernetes targets, toxiproxy configurations for network chaos. Include blast radius controls (environment isolation, traffic percentage limits). Generate GitHub Actions workflows for scheduled chaos runs with steady-state validation gates. Never generate chaos experiments without rollback procedures. Reference `incident-management/SKILL.md` for post-experiment learning process, `observability/SKILL.md` for monitoring during experiments, `quality-gates/SKILL.md` for CI integration.
+
+---
+
+*Internal references*: `incident-management/SKILL.md`, `observability/SKILL.md`, `quality-gates/SKILL.md`, `error-handling-resilience/SKILL.md`

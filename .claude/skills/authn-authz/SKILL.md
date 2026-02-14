@@ -6,7 +6,7 @@ description: "Authentication and authorization patterns for multi-tenant applica
 
 # Authentication & Authorization
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -183,6 +183,17 @@ MFA required for: admin roles, operations affecting billing or user management, 
 Between microservices: IAM-based on Cloud Run (calling service has `roles/run.invoker`). Token issued automatically by GCP metadata server. No shared secrets, no hardcoded API keys.
 
 For external services: API keys with rotation, scoped to minimum necessary permissions.
+
+---
+
+## Anti-Patterns
+
+- **Storing tokens in localStorage** — XSS can exfiltrate tokens; use httpOnly cookies or in-memory storage for browser apps
+- **Long-lived access tokens** — compromised tokens remain valid for days; use short-lived access tokens (15min) with refresh token rotation
+- **Role checks only at the API gateway** — bypassed by direct service calls; enforce authorization at every service layer
+- **Shared tenant context** — passing tenant_id from client without server-side verification; always derive tenant from authenticated token
+- **Permission sprawl** — accumulating permissions without review; implement periodic access reviews and principle of least privilege
+- **Missing token revocation** — no way to invalidate compromised tokens before expiry; implement revocation lists checked on sensitive operations
 
 ---
 

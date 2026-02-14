@@ -6,7 +6,7 @@ cluster: delivery-release
 
 # Writing Plans
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -154,6 +154,12 @@ For batch execution, follow the process described in the executing-plans skill.
 - Planning features that duplicate existing functionality
 - Skipping the test step ("we'll add tests later")
 - Creating monolithic tasks that resist TDD decomposition
+
+---
+
+## For Claude Code
+
+When writing implementation plans: read the existing codebase before planning — never assume project structure, tool versions, or patterns. Break every task into atomic steps (2-5 minutes each) following a strict red-green-commit TDD cycle. Include exact file paths, complete code snippets, exact verification commands with expected output, and dependency order between tasks. Save plans to `docs/plans/YYYY-MM-DD-<feature-name>.md`. After saving, present the three execution options (batch, task-by-task, manual). Reference `executing-plans/SKILL.md` for batch execution process.
 
 ---
 

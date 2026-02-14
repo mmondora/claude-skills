@@ -6,7 +6,7 @@ cluster: "cloud-infrastructure"
 
 # Kubernetes Specialist
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -285,6 +285,18 @@ metadata:
 ```
 
 Labels enable filtering, monitoring dashboards, cost attribution, and NetworkPolicy selectors.
+
+---
+
+## Anti-Patterns
+
+- **Using `latest` tag** -- non-deterministic deployments; a rebuild pulls a different image and breaks production without any code change.
+- **No resource limits** -- a single pod without memory limits can OOM-kill the node, taking down all co-located workloads.
+- **Default ServiceAccount everywhere** -- the default SA may have cluster-wide permissions; every workload needs a dedicated SA with minimum RBAC.
+- **Exposing with LoadBalancer per service** -- each LoadBalancer provisions a cloud load balancer ($18+/month on GCP); use Ingress to consolidate.
+- **No NetworkPolicies** -- without default-deny, any compromised pod can reach any other pod; lateral movement becomes trivial.
+- **Manual `kubectl apply` in production** -- drift between Git and cluster state; use GitOps (ArgoCD/Flux) for all production changes.
+- **Liveness probe hitting dependencies** -- liveness should check only the process itself; if it checks the database, a DB outage restarts all pods simultaneously.
 
 ---
 

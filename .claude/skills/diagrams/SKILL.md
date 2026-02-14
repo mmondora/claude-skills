@@ -6,7 +6,7 @@ description: "Architectural diagrams as code using Mermaid and C4 model. System 
 
 # Diagrams & Visualization
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-09
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -237,6 +237,16 @@ Use PlantUML when: C4 diagrams with PlantUML-C4 library offer better layout than
 **One diagram, one concept**: if a diagram tries to show everything, it shows nothing. Each diagram answers a specific question.
 
 **Update or delete**: an obsolete diagram is worse than no diagram. If the system changes, the diagram changes in the same PR.
+
+---
+
+## Anti-Patterns
+
+- **Architecture astronaut diagrams** — showing every component and connection at once; use C4 levels to progressively disclose detail
+- **Stale diagrams** — documentation that hasn't been updated since the initial design; diagrams must be generated from code or updated with every architectural change
+- **Tool-locked diagrams** — using proprietary formats (Visio, Lucidchart) that require licenses to edit; use Mermaid or PlantUML for version-controlled, reviewable diagrams
+- **Missing legend or context** — diagrams without labels, arrows without meaning, boxes without technology annotations; every element must be self-explanatory
+- **Mixing abstraction levels** — showing infrastructure details alongside business processes in one diagram; separate concerns into appropriate C4 levels
 
 ---
 

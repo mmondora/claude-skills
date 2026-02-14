@@ -16,7 +16,7 @@ allowed-tools:
 
 # Differential Security Review
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
 Security-focused code review for PRs, commits, and diffs.
 
@@ -209,15 +209,17 @@ These patterns require adversarial analysis even in quick triage.
 
 ---
 
-## Supporting Documentation
+## Anti-Patterns
 
-- **[methodology.md](methodology.md)** - Detailed phase-by-phase workflow (Phases 0-4)
-- **[adversarial.md](adversarial.md)** - Attacker modeling and exploit scenarios (Phase 5)
-- **[reporting.md](reporting.md)** - Report structure and formatting (Phase 6)
-- **[patterns.md](patterns.md)** - Common vulnerability patterns reference
+- **Rubber-stamp review** — approving small PRs without analysis because "it's just a few lines"; Heartbleed was a 2-line change
+- **Size-based triage** — classifying risk by line count instead of by what the code touches; a 3-line auth change is higher risk than a 500-line UI refactoring
+- **Generic findings** — reporting "possible XSS" without specific line numbers, attack vectors, and exploit scenarios; unactionable findings get ignored
+- **Skipping git history** — reviewing only the current diff without checking what was removed or modified from security-related commits; regressions hide in removals
+- **Verbal-only findings** — discussing issues in chat without generating the report file; findings are lost, not tracked, and cannot be audited
+- **Happy-path-only review** — checking that new code works correctly without analyzing error paths, edge cases, and adversarial inputs
 
----
+## For Claude Code
 
-**For first-time users:** Start with [methodology.md](methodology.md) to understand the complete workflow.
+When performing differential reviews: always start with git blame on removed or modified security-relevant code before analyzing additions. Calculate blast radius quantitatively (count callers, transitive dependencies) for HIGH risk changes. Classify risk by what the code touches (auth, crypto, validation, external calls), never by PR size. Generate concrete attack scenarios with specific inputs and expected exploitable outputs — never generic "possible vulnerability" findings. Always produce a markdown report file with line-number references, severity ratings, and recommended fixes. Reference `security-by-design/SKILL.md` for OWASP patterns, `security-testing/SKILL.md` for automated scanning integration, `owasp-security/SKILL.md` for vulnerability classification.
 
-**For experienced users:** Use this page's Quick Reference and Decision Tree to navigate directly to needed content.
+*Internal references*: `security-by-design/SKILL.md`, `security-testing/SKILL.md`, `owasp-security/SKILL.md`, `quality-gates/SKILL.md`

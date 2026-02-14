@@ -20,7 +20,7 @@ claude-skills/
   CLAUDE.md                              # Master configuration
 ```
 
-## Skills Catalog (59 skills)
+## Skills Catalog (60 skills)
 
 <!-- SKILLS_START -->
 
@@ -31,6 +31,7 @@ claude-skills/
 | `ask-questions-if-underspecified` | description: Clarify underspecified requirements before implementation. |
 | `prompt-architect` | Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). Provides framework recommendations, asks targeted questions, and structures prompts for maximum effectiveness |
 | `skill-clusters` | Skill cluster index and loader. Maps clusters to their constituent skills, enabling bulk loading by domain |
+| `sub-agent-orchestration` | Multi-agent orchestration system for Claude Code. Four sub-agents (PO, Architect, EngMan, Dev) with pipeline collaboration, auto-routing, and per-project configuration |
 
 ### Cloud & Infrastructure
 | Skill | What it covers |

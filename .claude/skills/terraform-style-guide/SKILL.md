@@ -6,9 +6,13 @@ cluster: cloud-infrastructure
 
 # Terraform Style Guide
 
-> **Version**: 1.2.0 | **Last updated**: 2026-02-13
+> **Version**: 1.3.0 | **Last updated**: 2026-02-14
 
-Generate and maintain Terraform code following HashiCorp's official style conventions and best practices.
+## Purpose
+
+Consistent HCL style across modules and teams reduces cognitive load during reviews and prevents configuration drift. Without enforced conventions, Terraform codebases accumulate inconsistent naming, misaligned arguments, and undocumented variables that slow every change.
+
+---
 
 **Reference:** [HashiCorp Terraform Style Guide](https://developer.hashicorp.com/terraform/language/style)
 
@@ -351,6 +355,19 @@ Additional tools:
 - [ ] No hardcoded credentials or secrets
 - [ ] Security best practices applied
 
+## Anti-Patterns
+
+- **Inline everything in main.tf** — single-file modules become unnavigable past 200 lines; split into terraform.tf, variables.tf, outputs.tf, locals.tf per the standard structure
+- **Undocumented variables** — variables without `description` are black boxes during `terraform plan` review; every variable needs type and description
+- **Using count for named resources** — `count` creates positional references that break on reorder; use `for_each` with named keys for stable resource addressing
+- **Hardcoded values in resources** — magic numbers and strings scattered through resources; extract to variables or locals with meaningful names
+- **Missing validation blocks** — accepting any string for constrained inputs (environments, regions, instance types); add validation blocks to catch misconfigurations at plan time
+- **No version pinning** — unpinned provider versions cause "works on my machine" failures; pin with `~>` constraints in required_providers
+
+## For Claude Code
+
+When generating Terraform HCL: organize files as terraform.tf (versions), providers.tf, main.tf, variables.tf (alphabetical), outputs.tf (alphabetical), locals.tf. Use two-space indentation with aligned equals signs. Name resources with lowercase_underscores using descriptive nouns excluding the resource type — default to `main` for singleton resources. Every variable must have `type`, `description`, and `validation` block where applicable. Every output must have `description`. Mark sensitive values with `sensitive = true`. Prefer `for_each` over `count` for named resources; reserve `count` for conditional creation only. Enable encryption at rest, private networking, and least-privilege security groups by default. Always run `terraform fmt` and `terraform validate` before committing. Reference `terraform-test/SKILL.md` for testing patterns, `infrastructure-as-code/SKILL.md` for state management and modularity.
+
 ---
 
-*Based on: [HashiCorp Terraform Style Guide](https://developer.hashicorp.com/terraform/language/style)*
+*Internal references*: `terraform-test/SKILL.md`, `infrastructure-as-code/SKILL.md`, `security-by-design/SKILL.md`

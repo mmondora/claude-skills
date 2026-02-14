@@ -65,7 +65,7 @@ claude-skills/
 ### Delivery & Release
 | Skill | What it covers |
 |-------|----------------|
-| `chaos-engineer` | description: Use when designing chaos experiments, implementing failure injection frameworks, or conducting game day exercises. Invoke for chaos experiments, resilience testing, blast radius control, game days, antifragile systems. |
+| `chaos-engineer` | Chaos engineering for resilience validation. Experiment design, blast radius control, failure injection, game days, continuous chaos in CI/CD |
 | `cicd-pipeline` | CI/CD pipeline design with GitHub Actions. Pipeline stages, caching, environments, blue-green and canary deployments |
 | `executing-plans` | description: Execute implementation plans in batches with feedback checkpoints. |
 | `feature-management` | Feature flags, progressive rollout, A/B testing, and kill switches. Flag types, hygiene, implementation patterns |
@@ -88,7 +88,7 @@ claude-skills/
 |-------|----------------|
 | `caching-search` | Distributed caching and full-text search patterns. Cache-aside, write-through, invalidation strategies, Redis, PostgreSQL FTS, Elasticsearch |
 | `data-modeling` | Schema design, multi-tenant data isolation, and migration management. Firestore and PostgreSQL patterns, RLS, UUID v7 conventions |
-| `database-optimizer` | description: Use when investigating slow queries, analyzing execution plans, or optimizing database performance. Invoke for index design, query rewrites, configuration tuning, partitioning strategies, lock contention resolution. |
+| `database-optimizer` | Database performance optimization for PostgreSQL and MySQL. Query analysis, execution plans, index design, partitioning, connection pooling, lock contention |
 | `event-driven-architecture` | Event-driven systems with CloudEvents and GCP Pub/Sub. Event design, schema evolution, delivery guarantees, idempotency, eventual consistency |
 
 ### Architecture & Patterns
@@ -96,14 +96,14 @@ claude-skills/
 |-------|----------------|
 | `api-design` | API design conventions for REST and GraphQL. Resource naming, versioning, pagination, error responses (RFC 7807), OpenAPI-first workflow, backward compatibility |
 | `error-handling-resilience` | Error handling and resilience patterns for distributed systems. Typed errors, circuit breakers, retry with backoff, bulkheads, timeout budgets, graceful degradation and shutdown |
-| `legacy-modernizer` | description: Use when modernizing legacy systems, implementing incremental migration strategies, or reducing technical debt. Invoke for strangler fig pattern, monolith decomposition, framework upgrades. |
-| `microservices-architect` | description: Use when designing distributed systems, decomposing monoliths, or implementing microservices patterns. Invoke for service boundaries, DDD, saga patterns, event sourcing, service mesh, distributed tracing. |
+| `legacy-modernizer` | Incremental migration strategies for legacy systems. Strangler fig pattern, branch by abstraction, characterization testing, zero-downtime migration |
+| `microservices-architect` | Service decomposition and distributed system design. Domain-driven design, bounded contexts, inter-service communication, data ownership, resilience patterns, service mesh |
 | `microservices-patterns` | Microservices patterns for service decomposition, inter-service communication, and operational concerns. Bounded contexts, database per service, CQRS, API gateway, distributed tracing, and resilience |
 
 ### AI & Applications
 | Skill | What it covers |
 |-------|----------------|
-| `rag-architect` | description: Use when building RAG systems, vector databases, or knowledge-grounded AI applications requiring semantic search, document retrieval, or context augmentation. |
+| `rag-architect` | Retrieval-Augmented Generation system design. Vector databases, embedding models, chunking strategies, hybrid search, reranking, RAG evaluation |
 
 ### Mobile & Native
 | Skill | What it covers |

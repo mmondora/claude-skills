@@ -546,3 +546,7 @@ Use this skill when:
 - Handling errors and exceptions
 - Working with third-party dependencies
 - **Working in any language** - apply the deep analysis mindset above
+
+---
+
+*Internal references*: `security-by-design/SKILL.md`, `security-testing/SKILL.md`, `authn-authz/SKILL.md`, `differential-review/SKILL.md`

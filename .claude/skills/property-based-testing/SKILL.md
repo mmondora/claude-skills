@@ -134,3 +134,7 @@ Do not accept these shortcuts:
 - **"It's too hard to write generators"** - Most PBT libraries have excellent built-in strategies; custom generators are rarely needed
 - **"The test failed, so it's a bug"** - Failures require validation; see [interpreting-failures.md]({baseDir}/references/interpreting-failures.md)
 - **"No crash means it works"** - "No exception" is the weakest property; always push for stronger guarantees
+
+---
+
+*Internal references*: `testing-strategy/SKILL.md`, `testing-implementation/SKILL.md`, `pypict-claude-skill/SKILL.md`

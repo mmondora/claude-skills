@@ -337,6 +337,37 @@ The skills themselves follow the principle of evolutionary coherence. Each skill
 *Last revision: 2026-02-13*
 *CLAUDE.md version: 1.2.0*
 
+---
+
+## Sub-Agent System
+
+This repository includes a multi-agent system where Claude Code operates with four professional perspectives. Each agent has distinct expertise, deliverables, and decision authority.
+
+**Full agent definitions**: see `AGENTS.md` for complete profiles, behavioral rules, and collaboration protocol.
+
+### Quick Reference
+
+| Agent | Prefix | Role | Deliverable Prefix |
+|-------|--------|------|-------------------|
+| Product Owner | `@po` | Requirements, priorities, acceptance criteria | `## 📋 PO Assessment` |
+| Architect | `@architect` | NFR, trade-offs, integration, ADR, fitness functions | `## 🏛️ Architecture Assessment` |
+| Engineering Manager | `@engman` | Delivery risk, capacity, team impact, process | `## 📊 Engineering Assessment` |
+| Senior Developer | `@dev` | Implementation, tests, code quality | `## 💻 Implementation` |
+
+### Activation
+
+- **Auto-routing** (default): Claude Code selects the right agent(s) based on task context
+- **Explicit**: prefix your message with `@po`, `@architect`, `@engman`, or `@dev`
+- **Multi-agent**: `@architect @dev` for collaborative output
+
+### Collaboration
+
+Agents follow a **pipeline with loop-back** model: PO → Architect → EngMan → Dev is the default sequence. Any agent can request input from a previous agent when it discovers gaps or conflicts.
+
+### Per-Project Configuration
+
+Projects can enable/disable agents in their CLAUDE.md. See `AGENTS.md` for configuration format. By default, all four agents are active.
+
 <!-- claude-skills:begin -->
 ## Installed Skills
 

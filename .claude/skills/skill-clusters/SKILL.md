@@ -22,8 +22,9 @@ Skills:
 - `architecture-decision-records/SKILL.md` — ADR governance, format, lifecycle
 - `prompt-architect/SKILL.md` — Prompt engineering frameworks (CO-STAR, RISEN, TIDD-EC, etc.)
 - `ask-questions-if-underspecified/SKILL.md` — Clarify underspecified requirements before implementation
+- `sub-agent-orchestration/SKILL.md` — Multi-agent orchestration (PO, Architect, EngMan, Dev)
 
-**When to load**: architectural governance, decision recording, prompt engineering, requirement clarification.
+**When to load**: architectural governance, decision recording, prompt engineering, requirement clarification, agent orchestration.
 
 ### cloud-infrastructure — Cloud & Infrastructure
 

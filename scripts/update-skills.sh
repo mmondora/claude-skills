@@ -73,6 +73,7 @@ cluster_sort_order() {
 TARGET=""
 DRY_RUN=false
 NO_PATCH=false
+NO_AGENTS=false
 BRANCH="main"
 REPO="mmondora/claude-skills"
 
@@ -83,6 +84,9 @@ while [ $# -gt 0 ]; do
       ;;
     --no-patch)
       NO_PATCH=true
+      ;;
+    --no-agents)
+      NO_AGENTS=true
       ;;
     --branch)
       shift
@@ -106,6 +110,7 @@ while [ $# -gt 0 ]; do
       echo "Options:"
       echo "  --dry-run            Show what would change without applying"
       echo "  --no-patch           Skip CLAUDE.md patching"
+      echo "  --no-agents          Skip AGENTS.md update"
       echo "  --branch <name>      GitHub branch (default: main)"
       echo "  --repo <owner/repo>  GitHub repo (default: mmondora/claude-skills)"
       echo ""
@@ -406,6 +411,32 @@ ${MARKER_END}"
 HEREDOC
     echo "$SKILLS_BLOCK" >> "$CLAUDE_MD"
     echo -e "  ${GREEN}Created CLAUDE.md with skills section${NC}"
+  fi
+fi
+
+# ── Update AGENTS.md ──
+if [ "$NO_AGENTS" = false ]; then
+  AGENTS_SRC="${EXTRACTED}/AGENTS.md"
+  AGENTS_DST="${TARGET}/AGENTS.md"
+
+  if [ -f "$AGENTS_SRC" ]; then
+    echo ""
+    echo -e "${CYAN}Checking AGENTS.md...${NC}"
+    if [ -f "$AGENTS_DST" ]; then
+      if diff -q "$AGENTS_SRC" "$AGENTS_DST" > /dev/null 2>&1; then
+        echo -e "  ${DIM}[current]  AGENTS.md${NC}"
+      else
+        if [ "$DRY_RUN" = false ]; then
+          cp "$AGENTS_SRC" "$AGENTS_DST"
+        fi
+        echo -e "  ${YELLOW}[updated]${NC}  AGENTS.md"
+      fi
+    else
+      if [ "$DRY_RUN" = false ]; then
+        cp "$AGENTS_SRC" "$AGENTS_DST"
+      fi
+      echo -e "  ${GREEN}[new]${NC}      AGENTS.md"
+    fi
   fi
 fi
 

@@ -90,6 +90,7 @@ TARGET=""
 CLUSTERS=()
 FORCE=false
 NO_PATCH=false
+NO_AGENTS=false
 BRANCH="main"
 REPO="mmondora/claude-skills"
 LIST_ONLY=false
@@ -109,6 +110,9 @@ while [ $# -gt 0 ]; do
       ;;
     --no-patch)
       NO_PATCH=true
+      ;;
+    --no-agents)
+      NO_AGENTS=true
       ;;
     --branch)
       shift
@@ -134,6 +138,7 @@ while [ $# -gt 0 ]; do
       echo "  --list-clusters      Show available clusters and exit"
       echo "  --force              Overwrite existing skills without prompting"
       echo "  --no-patch           Skip CLAUDE.md patching"
+      echo "  --no-agents          Skip AGENTS.md installation"
       echo "  --branch <name>      GitHub branch (default: main)"
       echo "  --repo <owner/repo>  GitHub repo (default: mmondora/claude-skills)"
       echo ""
@@ -431,6 +436,68 @@ ${MARKER_END}"
 HEREDOC
     echo "$SKILLS_BLOCK" >> "$CLAUDE_MD"
     echo -e "  ${GREEN}Created CLAUDE.md with skills section${NC}"
+  fi
+fi
+
+# ── Install AGENTS.md ──
+if [ "$NO_AGENTS" = false ]; then
+  AGENTS_SRC="${EXTRACTED}/AGENTS.md"
+  AGENTS_DST="${TARGET}/AGENTS.md"
+
+  if [ -f "$AGENTS_SRC" ]; then
+    echo ""
+    echo -e "${CYAN}Installing AGENTS.md...${NC}"
+    if [ -f "$AGENTS_DST" ]; then
+      if [ "$FORCE" = true ]; then
+        cp "$AGENTS_SRC" "$AGENTS_DST"
+        echo -e "  ${GREEN}[updated]${NC}  AGENTS.md"
+      else
+        echo -e "  ${DIM}[exists]${NC}   AGENTS.md ${DIM}(use --force to overwrite)${NC}"
+      fi
+    else
+      cp "$AGENTS_SRC" "$AGENTS_DST"
+      echo -e "  ${GREEN}[new]${NC}      AGENTS.md"
+    fi
+
+    # Append agent config block to target CLAUDE.md if not present
+    if [ "$NO_PATCH" = false ] && [ -f "$CLAUDE_MD" ]; then
+      AGENT_MARKER="<!-- claude-agents:begin -->"
+      if ! grep -q "$AGENT_MARKER" "$CLAUDE_MD"; then
+        SKILLS_MARKER="<!-- claude-skills:begin -->"
+        AGENT_BLOCK='<!-- claude-agents:begin -->
+## Active Agents
+
+All agents are enabled by default. Customize by editing the values below.
+
+agents:
+  po: true
+  architect: true
+  engman: true
+  dev: true
+
+For full agent profiles and collaboration protocol, see `AGENTS.md`.
+<!-- claude-agents:end -->'
+        if grep -q "$SKILLS_MARKER" "$CLAUDE_MD"; then
+          # Insert before skills marker
+          AGENT_FILE="$(mktemp)"
+          echo "$AGENT_BLOCK" > "$AGENT_FILE"
+          awk -v af="$AGENT_FILE" '
+            /<!-- claude-skills:begin -->/ {
+              while((getline line < af) > 0) print line
+              close(af)
+              print ""
+            }
+            { print }
+          ' "$CLAUDE_MD" > "${CLAUDE_MD}.tmp"
+          rm -f "$AGENT_FILE"
+          mv "${CLAUDE_MD}.tmp" "$CLAUDE_MD"
+        else
+          echo "" >> "$CLAUDE_MD"
+          echo "$AGENT_BLOCK" >> "$CLAUDE_MD"
+        fi
+        echo -e "  ${GREEN}Added agent configuration to CLAUDE.md${NC}"
+      fi
+    fi
   fi
 fi
 

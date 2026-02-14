@@ -20,7 +20,7 @@ claude-skills/
   CLAUDE.md                              # Master configuration
 ```
 
-## Skills Catalog (68 skills)
+## Skills Catalog (69 skills)
 
 <!-- SKILLS_START -->
 
@@ -31,6 +31,7 @@ claude-skills/
 | `ask-questions-if-underspecified` | description: Clarify underspecified requirements before implementation. |
 | `prompt-architect` | Analyzes and transforms prompts using 8 research-backed frameworks (CO-STAR, RISEN, RISE-IE, RISE-IX, TIDD-EC, RTF, Chain of Thought, Chain of Density). Provides framework recommendations, asks targeted questions, and structures prompts for maximum effectiveness |
 | `skill-clusters` | Skill cluster index and loader. Maps clusters to their constituent skills, enabling bulk loading by domain |
+| `sub-agent-orchestration` | Multi-agent orchestration system for Claude Code. Four sub-agents (PO, Architect, EngMan, Dev) with pipeline collaboration, auto-routing, and per-project configuration |
 
 ### Cloud & Infrastructure
 | Skill | What it covers |
@@ -120,7 +121,7 @@ claude-skills/
 | `sci-measurement` | Software Carbon Intensity (SCI) measurement per ISO/IEC 21031:2024. SCI formula, energy measurement, carbon intensity data, embodied carbon, functional units, CI integration |
 | `sustainability-impact-assessment` | Sustainability governance council for software projects. Impact assessment framework, green PRR checklist, sustainability review process, GSF Maturity Matrix self-assessment, broader impact (social, environmental, economic) |
 
-### Uncategorized
+### Functional Architecture
 | Skill | What it covers |
 |-------|----------------|
 | `architecture-review-facilitation` | Architecture review governance and facilitation. Divulgative, decisional, and lightweight review types. Requestor preparation, facilitation guide, outcome recording |
@@ -128,16 +129,20 @@ claude-skills/
 | `architecture-stakeholder-communication` | Strategic architecture communication for non-technical stakeholders. Executive briefs, architecture pitches, technical risk translation, simplified visualization |
 | `fitness-functions` | Architecture fitness functions as automated quality attribute guardrails. Taxonomy, implementation patterns, catalog template, evolutionary governance |
 | `functional-analysis` | Functional analysis bridging business requirements to architecture. Domain analysis, event storming, use case specification, bounded context mapping |
-| `graphql-architect` | GraphQL schema design, Apollo Federation, DataLoader patterns, and query optimization. |
-| `insecure-defaults` | Detects fail-open insecure defaults — hardcoded secrets, weak auth, permissive security — that allow apps to run insecurely in production. |
 | `integration-design` | Integration design for cross-boundary communication. Pattern catalog, contract-first design, anti-corruption layers, data consistency across boundaries |
-| `kubernetes-specialist` | Kubernetes workloads, networking, security hardening, Helm, and GitOps. |
 | `nfr-specification` | Non-functional requirements specification using ISO 25010 quality model. Quality attribute scenarios (SEI method), NFR elicitation, prioritization, and validation |
 | `platform-architecture` | Platform thinking and capability mapping. Self-service APIs, thin vs thick platform, Team Topologies alignment, golden paths, platform health metrics |
+| `trade-off-analysis` | Systematic trade-off analysis for architectural decisions. Structured evaluation method, weighted scoring, reversibility assessment, cost-of-change estimation |
+
+### Uncategorized
+| Skill | What it covers |
+|-------|----------------|
+| `graphql-architect` | GraphQL schema design, Apollo Federation, DataLoader patterns, and query optimization. |
+| `insecure-defaults` | Detects fail-open insecure defaults — hardcoded secrets, weak auth, permissive security — that allow apps to run insecurely in production. |
+| `kubernetes-specialist` | Kubernetes workloads, networking, security hardening, Helm, and GitOps. |
 | `pypict-claude-skill` | Pairwise and combinatorial test case design using PICT models. |
 | `sharp-edges` | Identifies error-prone APIs, dangerous configurations, and footgun designs that enable security mistakes through poor developer ergonomics. |
 | `systematic-debugging` | Root-cause-first debugging methodology with four-phase investigation process. |
-| `trade-off-analysis` | Systematic trade-off analysis for architectural decisions. Structured evaluation method, weighted scoring, reversibility assessment, cost-of-change estimation |
 | `websocket-engineer` | Real-time communication with WebSocket and Socket.IO, scaling, and presence patterns. |
 
 <!-- SKILLS_END -->

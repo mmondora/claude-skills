@@ -6,7 +6,7 @@ cluster: delivery-release
 
 # Finishing a Development Branch
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -169,6 +169,12 @@ For Option 3, keep the worktree intact.
 - Deleting branches without confirmation
 - Skipping post-merge test verification
 - Leaving orphaned worktrees after completion
+
+---
+
+## For Claude Code
+
+When finishing a development branch: always run the full test suite before presenting options — never proceed with failing tests. Present exactly 4 structured options (merge locally, create PR, keep as-is, discard). For merge: pull the latest base branch, merge, run tests on merged result, then delete the feature branch. For PR: push with `-u` flag and create via `gh pr create`. For discard: require explicit typed confirmation before deleting. Clean up worktrees for all options except "keep as-is". Never force-push without explicit user request.
 
 ---
 

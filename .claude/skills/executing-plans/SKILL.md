@@ -6,7 +6,7 @@ cluster: delivery-release
 
 # Executing Plans
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -127,6 +127,12 @@ Return to plan review (Step 1) when:
 - Treating the plan as a loose suggestion rather than a specification
 - Continuing after test failures without investigating
 - Making "improvements" to the plan during execution without reporting them
+
+---
+
+## For Claude Code
+
+When executing implementation plans: review the plan critically before starting — raise gaps or concerns before implementing, not after. Execute in batches of 3 tasks by default. Follow each plan step exactly as written, run all verification commands, and confirm expected outcomes match. Report at every checkpoint (tasks completed, verification output, deviations, status). Never auto-continue past checkpoints — wait for user feedback. Stop immediately on blockers and ask for guidance instead of guessing. After all tasks complete, run the full test suite and follow `finishing-a-development-branch/SKILL.md` for integration.
 
 ---
 

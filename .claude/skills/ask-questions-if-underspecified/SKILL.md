@@ -6,7 +6,7 @@ cluster: foundations
 
 # Ask Questions If Underspecified
 
-> **Version**: 1.0.0 | **Last updated**: 2026-02-13
+> **Version**: 1.1.0 | **Last updated**: 2026-02-14
 
 ## Purpose
 
@@ -122,6 +122,12 @@ Once answers arrive, restate the requirements in 1-3 sentences including key con
 ### Burying the question in paragraphs
 - **Problem:** Long explanation before the actual question
 - **Fix:** Lead with the question. Add context below if needed.
+
+---
+
+## For Claude Code
+
+When receiving underspecified requests: assess whether the request has multiple plausible interpretations before starting work. If ambiguous, ask 1-5 numbered multiple-choice questions with recommended defaults and a fast-path option ("Reply `defaults` to accept all recommendations"). Never ask questions answerable by reading the codebase — inspect first, ask second. Do not proceed with implementation while must-have answers are pending. If explicitly told to proceed without answers, state assumptions as a numbered list and get confirmation. After receiving answers, restate the requirements in 1-3 sentences before beginning work.
 
 ---
 
